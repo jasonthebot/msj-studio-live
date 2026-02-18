@@ -6,41 +6,52 @@
   <title>msj-studio</title>
   <style>
     :root {
-      --bg: #0b0b0d;
-      --panel: #141418;
-      --panel-2: #1c1c21;
-      --text: #f2f2f5;
-      --muted: #a3a3ad;
-      --accent: #5a7cff;
-      --border: #2a2a33;
+      --bg: #0c0d10;
+      --panel: #12141a;
+      --panel-2: #171a22;
+      --text: #eef1f7;
+      --muted: #9aa3b2;
+      --accent: #7aa2ff;
+      --border: #252b37;
+      --chip: #1a2030;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #0f1012, var(--bg));
       color: var(--text);
+      background: radial-gradient(circle at 15% -10%, #1a2233 0%, var(--bg) 44%);
       min-height: 100vh;
     }
+
     .layout {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr 330px;
       min-height: 100vh;
     }
-    .canvas-wrap { padding: 24px; }
+
+    .canvas-wrap { padding: 22px; }
     .canvas {
-      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      min-height: calc(100vh - 48px);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #12151d, #0f1218 50%);
+      min-height: calc(100vh - 44px);
+      overflow: hidden;
     }
+
     .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 3;
       display: flex;
       gap: 8px;
-      margin-bottom: 14px;
       flex-wrap: wrap;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(12, 14, 19, 0.92);
+      backdrop-filter: blur(8px);
     }
+
     button {
       background: var(--panel-2);
       color: var(--text);
@@ -51,38 +62,68 @@
     }
     button:hover { border-color: var(--accent); }
 
+    #blocks { padding: 16px; }
+
     .block {
-      background: #101116;
+      background: #121722;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 18px;
       margin-bottom: 12px;
       position: relative;
       cursor: move;
     }
     .block.selected { outline: 2px solid var(--accent); }
-    .block h2, .block p { margin: 0 0 8px; }
+
     .editable { outline: none; }
     .editable[contenteditable="true"]:focus {
-      box-shadow: 0 0 0 2px #5a7cff66;
+      box-shadow: 0 0 0 2px #7aa2ff50;
       border-radius: 6px;
     }
 
+    .hero-title {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.05;
+      margin: 0 0 10px;
+      max-width: 900px;
+    }
+    .hero-sub {
+      color: var(--muted);
+      margin: 0;
+      max-width: 760px;
+      font-size: 1.05rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .chip {
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px;
+      font-size: .92rem;
+    }
+    .chip .k { color: var(--muted); font-size: .8rem; margin-bottom: 4px; }
+
     .sidebar {
       border-left: 1px solid var(--border);
-      background: #111116;
+      background: #101319;
       padding: 20px;
     }
     .section-title {
       margin: 0 0 10px;
       color: var(--muted);
-      font-size: .86rem;
+      font-size: .84rem;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .07em;
     }
     .field { margin-bottom: 12px; }
-    label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
-    input, textarea, select {
+    label { display: block; font-size: .84rem; color: var(--muted); margin-bottom: 6px; }
+    input, textarea {
       width: 100%;
       background: var(--panel-2);
       border: 1px solid var(--border);
@@ -96,6 +137,7 @@
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { border-left: 0; border-top: 1px solid var(--border); }
+      .row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -104,55 +146,75 @@
     <div class="canvas-wrap">
       <div class="canvas" id="canvas">
         <div class="toolbar">
-          <button id="addHero">+ Hero</button>
+          <button id="addHero">+ Hero Section</button>
+          <button id="addFeatures">+ Feature Grid</button>
           <button id="addText">+ Text Block</button>
           <button id="save">Save Local</button>
           <button id="reset">Reset</button>
         </div>
-
         <div id="blocks"></div>
       </div>
     </div>
 
     <aside class="sidebar">
-      <h3 class="section-title">msj-studio editor</h3>
+      <h3 class="section-title">msj-studio controls</h3>
       <div class="field">
         <label>Selected block background</label>
-        <input type="color" id="bgColor" value="#101116" />
+        <input type="color" id="bgColor" value="#121722" />
       </div>
       <div class="field">
         <label>Text color</label>
-        <input type="color" id="textColor" value="#f2f2f5" />
+        <input type="color" id="textColor" value="#eef1f7" />
       </div>
       <div class="field">
         <label>Padding (px)</label>
-        <input type="number" id="padding" value="16" min="0" max="80" />
+        <input type="number" id="padding" value="18" min="0" max="120" />
       </div>
       <div class="field">
         <button id="deleteBlock">Delete selected block</button>
       </div>
-      <p class="hint">
-        Desktop-first local builder. Drag blocks to reorder, click text to edit inline, then hit <b>Save Local</b>.
-      </p>
+      <p class="hint">Kinesis-style base layout loaded (structure only). Click text to edit, drag blocks to reorder, and save locally.</p>
     </aside>
   </div>
 
 <script>
-  const STORE = 'msj-studio-layout-v1';
+  const STORE = 'msj-studio-layout-v2';
   let selectedId = null;
 
   const defaultBlocks = [
     {
       id: crypto.randomUUID(),
       type: 'hero',
-      html: '<h2 class="editable" contenteditable="true">Welcome to msj-studio</h2><p class="editable" contenteditable="true">Click and edit this text. Drag blocks to reorder.</p>',
-      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+      html: `
+        <p class="editable" contenteditable="true" style="color:#9aa3b2;margin:0 0 8px;">AI Trading Infrastructure</p>
+        <h2 class="hero-title editable" contenteditable="true">Build, Launch, and Scale Your Trading Stack Faster.</h2>
+        <p class="hero-sub editable" contenteditable="true">Inspired by modern high-performance crypto product landing pages. Edit all text inline and use this as your live starter template.</p>
+        <div class="row">
+          <div class="chip editable" contenteditable="true"><div class="k">Latency</div><strong>&lt; 40ms avg execution</strong></div>
+          <div class="chip editable" contenteditable="true"><div class="k">Availability</div><strong>99.9% uptime target</strong></div>
+          <div class="chip editable" contenteditable="true"><div class="k">Integrations</div><strong>Exchange + wallet APIs</strong></div>
+        </div>
+      `,
+      style: { background: '#121722', color: '#eef1f7', padding: 22 }
+    },
+    {
+      id: crypto.randomUUID(),
+      type: 'features',
+      html: `
+        <h3 class="editable" contenteditable="true" style="margin:0 0 10px; font-size:1.3rem;">Core Modules</h3>
+        <div class="row">
+          <div class="chip editable" contenteditable="true"><div class="k">Signals</div>Real-time screening, ranking, and trigger alerts.</div>
+          <div class="chip editable" contenteditable="true"><div class="k">Execution</div>Rule-based entries/exits with risk controls.</div>
+          <div class="chip editable" contenteditable="true"><div class="k">Analytics</div>Daily PnL, streaks, and trade breakdowns.</div>
+        </div>
+      `,
+      style: { background: '#121722', color: '#eef1f7', padding: 20 }
     },
     {
       id: crypto.randomUUID(),
       type: 'text',
-      html: '<p class="editable" contenteditable="true">This is a text block. Add as many as you want.</p>',
-      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+      html: '<p class="editable" contenteditable="true" style="margin:0;color:#9aa3b2;">Tip: duplicate this section style to build your full homepage fast.</p>',
+      style: { background: '#121722', color: '#eef1f7', padding: 16 }
     }
   ];
 
@@ -225,16 +287,16 @@
   function syncSidebar() {
     const b = selected();
     if (!b) return;
-    document.getElementById('bgColor').value = toHex(b.style.background || '#101116');
-    document.getElementById('textColor').value = toHex(b.style.color || '#f2f2f5');
-    document.getElementById('padding').value = b.style.padding ?? 16;
+    document.getElementById('bgColor').value = toHex(b.style.background || '#121722');
+    document.getElementById('textColor').value = toHex(b.style.color || '#eef1f7');
+    document.getElementById('padding').value = b.style.padding ?? 18;
   }
 
   function toHex(c) {
-    if (!c) return '#101116';
+    if (!c) return '#121722';
     if (c.startsWith('#')) return c;
     const m = c.match(/\d+/g);
-    if (!m) return '#101116';
+    if (!m) return '#121722';
     return '#' + m.slice(0,3).map(n => Number(n).toString(16).padStart(2,'0')).join('');
   }
 
@@ -242,10 +304,21 @@
     blocks.unshift({
       id: crypto.randomUUID(),
       type: 'hero',
-      html: '<h2 class="editable" contenteditable="true">New Hero</h2><p class="editable" contenteditable="true">Edit this line...</p>',
-      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+      html: '<h2 class="hero-title editable" contenteditable="true">New Hero Section</h2><p class="hero-sub editable" contenteditable="true">Edit this text...</p>',
+      style: { background: '#121722', color: '#eef1f7', padding: 22 }
     });
     selectedId = blocks[0].id;
+    render();
+  };
+
+  document.getElementById('addFeatures').onclick = () => {
+    blocks.push({
+      id: crypto.randomUUID(),
+      type: 'features',
+      html: '<h3 class="editable" contenteditable="true">Feature Grid</h3><div class="row"><div class="chip editable" contenteditable="true">Feature 1</div><div class="chip editable" contenteditable="true">Feature 2</div><div class="chip editable" contenteditable="true">Feature 3</div></div>',
+      style: { background: '#121722', color: '#eef1f7', padding: 20 }
+    });
+    selectedId = blocks[blocks.length - 1].id;
     render();
   };
 
@@ -254,7 +327,7 @@
       id: crypto.randomUUID(),
       type: 'text',
       html: '<p class="editable" contenteditable="true">New text block...</p>',
-      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+      style: { background: '#121722', color: '#eef1f7', padding: 16 }
     });
     selectedId = blocks[blocks.length - 1].id;
     render();
@@ -286,7 +359,7 @@
   });
   document.getElementById('padding').addEventListener('input', (e) => {
     const b = selected(); if (!b) return;
-    b.style.padding = Number(e.target.value || 16);
+    b.style.padding = Number(e.target.value || 18);
     render();
   });
 

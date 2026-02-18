@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>msj-studio</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --panel: #141418;
+      --panel-2: #1c1c21;
+      --text: #f2f2f5;
+      --muted: #a3a3ad;
+      --accent: #5a7cff;
+      --border: #2a2a33;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0f1012, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      min-height: 100vh;
+    }
+    .canvas-wrap { padding: 24px; }
+    .canvas {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      min-height: calc(100vh - 48px);
+    }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+
+    .block {
+      background: #101116;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      cursor: move;
+    }
+    .block.selected { outline: 2px solid var(--accent); }
+    .block h2, .block p { margin: 0 0 8px; }
+    .editable { outline: none; }
+    .editable[contenteditable="true"]:focus {
+      box-shadow: 0 0 0 2px #5a7cff66;
+      border-radius: 6px;
+    }
+
+    .sidebar {
+      border-left: 1px solid var(--border);
+      background: #111116;
+      padding: 20px;
+    }
+    .section-title {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: .86rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .field { margin-bottom: 12px; }
+    label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+    input, textarea, select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: inherit;
+    }
+    .hint { color: var(--muted); font-size: .82rem; line-height: 1.35; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { border-left: 0; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas">
+        <div class="toolbar">
+          <button id="addHero">+ Hero</button>
+          <button id="addText">+ Text Block</button>
+          <button id="save">Save Local</button>
+          <button id="reset">Reset</button>
+        </div>
+
+        <div id="blocks"></div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <h3 class="section-title">msj-studio editor</h3>
+      <div class="field">
+        <label>Selected block background</label>
+        <input type="color" id="bgColor" value="#101116" />
+      </div>
+      <div class="field">
+        <label>Text color</label>
+        <input type="color" id="textColor" value="#f2f2f5" />
+      </div>
+      <div class="field">
+        <label>Padding (px)</label>
+        <input type="number" id="padding" value="16" min="0" max="80" />
+      </div>
+      <div class="field">
+        <button id="deleteBlock">Delete selected block</button>
+      </div>
+      <p class="hint">
+        Desktop-first local builder. Drag blocks to reorder, click text to edit inline, then hit <b>Save Local</b>.
+      </p>
+    </aside>
+  </div>
+
+<script>
+  const STORE = 'msj-studio-layout-v1';
+  let selectedId = null;
+
+  const defaultBlocks = [
+    {
+      id: crypto.randomUUID(),
+      type: 'hero',
+      html: '<h2 class="editable" contenteditable="true">Welcome to msj-studio</h2><p class="editable" contenteditable="true">Click and edit this text. Drag blocks to reorder.</p>',
+      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+    },
+    {
+      id: crypto.randomUUID(),
+      type: 'text',
+      html: '<p class="editable" contenteditable="true">This is a text block. Add as many as you want.</p>',
+      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+    }
+  ];
+
+  let blocks = load() || defaultBlocks;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORE)); }
+    catch { return null; }
+  }
+
+  function save() {
+    localStorage.setItem(STORE, JSON.stringify(blocks));
+    alert('Saved locally ✅');
+  }
+
+  function render() {
+    const root = document.getElementById('blocks');
+    root.innerHTML = '';
+
+    blocks.forEach((b, index) => {
+      const el = document.createElement('article');
+      el.className = 'block' + (b.id === selectedId ? ' selected' : '');
+      el.dataset.id = b.id;
+      el.draggable = true;
+      el.style.background = b.style.background;
+      el.style.color = b.style.color;
+      el.style.padding = (b.style.padding || 16) + 'px';
+      el.innerHTML = b.html;
+
+      el.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('editable')) {
+          selectedId = b.id;
+          syncSidebar();
+          render();
+        }
+      });
+
+      el.addEventListener('input', () => {
+        b.html = el.innerHTML;
+      });
+
+      el.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', index);
+      });
+      el.addEventListener('dragover', (e) => e.preventDefault());
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const from = Number(e.dataTransfer.getData('text/plain'));
+        const to = index;
+        if (from === to) return;
+        const moved = blocks.splice(from, 1)[0];
+        blocks.splice(to, 0, moved);
+        render();
+      });
+
+      root.appendChild(el);
+    });
+
+    if (!selectedId && blocks[0]) {
+      selectedId = blocks[0].id;
+      syncSidebar();
+      render();
+    }
+  }
+
+  function selected() {
+    return blocks.find(b => b.id === selectedId) || null;
+  }
+
+  function syncSidebar() {
+    const b = selected();
+    if (!b) return;
+    document.getElementById('bgColor').value = toHex(b.style.background || '#101116');
+    document.getElementById('textColor').value = toHex(b.style.color || '#f2f2f5');
+    document.getElementById('padding').value = b.style.padding ?? 16;
+  }
+
+  function toHex(c) {
+    if (!c) return '#101116';
+    if (c.startsWith('#')) return c;
+    const m = c.match(/\d+/g);
+    if (!m) return '#101116';
+    return '#' + m.slice(0,3).map(n => Number(n).toString(16).padStart(2,'0')).join('');
+  }
+
+  document.getElementById('addHero').onclick = () => {
+    blocks.unshift({
+      id: crypto.randomUUID(),
+      type: 'hero',
+      html: '<h2 class="editable" contenteditable="true">New Hero</h2><p class="editable" contenteditable="true">Edit this line...</p>',
+      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+    });
+    selectedId = blocks[0].id;
+    render();
+  };
+
+  document.getElementById('addText').onclick = () => {
+    blocks.push({
+      id: crypto.randomUUID(),
+      type: 'text',
+      html: '<p class="editable" contenteditable="true">New text block...</p>',
+      style: { background: '#101116', color: '#f2f2f5', padding: 16 }
+    });
+    selectedId = blocks[blocks.length - 1].id;
+    render();
+  };
+
+  document.getElementById('save').onclick = save;
+  document.getElementById('reset').onclick = () => {
+    if (!confirm('Reset layout to default?')) return;
+    localStorage.removeItem(STORE);
+    location.reload();
+  };
+
+  document.getElementById('deleteBlock').onclick = () => {
+    if (!selectedId) return;
+    blocks = blocks.filter(b => b.id !== selectedId);
+    selectedId = blocks[0]?.id || null;
+    render();
+  };
+
+  document.getElementById('bgColor').addEventListener('input', (e) => {
+    const b = selected(); if (!b) return;
+    b.style.background = e.target.value;
+    render();
+  });
+  document.getElementById('textColor').addEventListener('input', (e) => {
+    const b = selected(); if (!b) return;
+    b.style.color = e.target.value;
+    render();
+  });
+  document.getElementById('padding').addEventListener('input', (e) => {
+    const b = selected(); if (!b) return;
+    b.style.padding = Number(e.target.value || 16);
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>

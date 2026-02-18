@@ -6,86 +6,185 @@
   <title>msj-studio</title>
   <style>
     :root {
-      --bg: #0c0d10;
-      --panel: #12141a;
-      --panel-2: #171a22;
-      --text: #eef1f7;
-      --muted: #9aa3b2;
+      --bg: #0b0d12;
+      --panel: #11141b;
+      --panel-2: #171b24;
+      --text: #edf1f8;
+      --muted: #98a1b3;
       --accent: #7aa2ff;
-      --border: #252b37;
-      --chip: #1a2030;
+      --accent-soft: #7aa2ff2e;
+      --border: #252c39;
+      --chip: #1a2231;
+      --danger: #ff6f7f;
+      --ok: #62d69f;
     }
+
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at 15% -10%, #1a2233 0%, var(--bg) 44%);
+      background: radial-gradient(circle at 15% -10%, #1a2335 0%, var(--bg) 44%);
       min-height: 100vh;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: 1fr 330px;
+      grid-template-columns: minmax(920px, 1fr) 340px;
       min-height: 100vh;
     }
 
-    .canvas-wrap { padding: 22px; }
+    .canvas-wrap { padding: 20px; }
     .canvas {
       border: 1px solid var(--border);
       border-radius: 16px;
       background: linear-gradient(180deg, #12151d, #0f1218 50%);
-      min-height: calc(100vh - 44px);
+      min-height: calc(100vh - 40px);
       overflow: hidden;
     }
 
     .toolbar {
       position: sticky;
       top: 0;
-      z-index: 3;
+      z-index: 6;
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
       padding: 12px;
       border-bottom: 1px solid var(--border);
-      background: rgba(12, 14, 19, 0.92);
-      backdrop-filter: blur(8px);
+      background: rgba(11, 13, 18, 0.93);
+      backdrop-filter: blur(10px);
     }
+
+    .group {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding-right: 8px;
+      border-right: 1px solid #1d2330;
+      margin-right: 4px;
+    }
+    .group:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
 
     button {
       background: var(--panel-2);
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 8px 11px;
       cursor: pointer;
+      transition: border-color .16s ease, transform .08s ease, background .18s ease;
     }
     button:hover { border-color: var(--accent); }
+    button:active { transform: translateY(1px); }
 
-    #blocks { padding: 16px; }
+    button.primary {
+      background: linear-gradient(180deg, #2a3a5f, #1f2d4a);
+      border-color: #395189;
+    }
+    button.subtle { color: var(--muted); }
+    button.danger { border-color: #5d2f39; color: #ffb4be; }
+
+    #status {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: .84rem;
+      white-space: nowrap;
+    }
+    #status.ok { color: var(--ok); }
+
+    #blocks {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .block-wrap {
+      position: relative;
+      border-radius: 14px;
+      transition: transform .12s ease;
+    }
+
+    .drag-over-top::before,
+    .drag-over-bottom::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+      border-radius: 3px;
+      z-index: 3;
+    }
+    .drag-over-top::before { top: -6px; }
+    .drag-over-bottom::after { bottom: -6px; }
 
     .block {
       background: #121722;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 12px;
       position: relative;
-      cursor: move;
+      overflow: hidden;
     }
-    .block.selected { outline: 2px solid var(--accent); }
 
-    .editable { outline: none; }
-    .editable[contenteditable="true"]:focus {
-      box-shadow: 0 0 0 2px #7aa2ff50;
+    .block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px dashed #1f2532;
+      padding: 8px 10px;
+      background: rgba(12, 15, 21, 0.64);
+      cursor: grab;
+      user-select: none;
+    }
+    .block-head:active { cursor: grabbing; }
+
+    .meta {
+      color: var(--muted);
+      font-size: .76rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .drag-handle {
+      font-size: .8rem;
+      color: var(--muted);
+      border: 1px solid #2a3241;
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: #151b27;
+    }
+
+    .content {
+      padding: 18px;
+      min-height: 58px;
+    }
+
+    .block.selected {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .editable {
+      outline: none;
       border-radius: 6px;
+      transition: box-shadow .15s ease;
+    }
+    .editable:focus {
+      box-shadow: 0 0 0 2px #7aa2ff50;
     }
 
     .hero-title {
-      font-size: clamp(1.8rem, 4vw, 3rem);
-      line-height: 1.05;
+      font-size: clamp(1.9rem, 3.4vw, 3rem);
+      line-height: 1.06;
       margin: 0 0 10px;
       max-width: 900px;
+      letter-spacing: -.02em;
     }
     .hero-sub {
       color: var(--muted);
@@ -111,18 +210,30 @@
 
     .sidebar {
       border-left: 1px solid var(--border);
-      background: #101319;
-      padding: 20px;
+      background: #10131a;
+      padding: 18px;
     }
     .section-title {
       margin: 0 0 10px;
       color: var(--muted);
-      font-size: .84rem;
+      font-size: .81rem;
       text-transform: uppercase;
-      letter-spacing: .07em;
+      letter-spacing: .09em;
+    }
+    .card {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #131823;
     }
     .field { margin-bottom: 12px; }
-    label { display: block; font-size: .84rem; color: var(--muted); margin-bottom: 6px; }
+    label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
     input, textarea {
       width: 100%;
       background: var(--panel-2);
@@ -132,9 +243,23 @@
       padding: 8px 10px;
       font: inherit;
     }
-    .hint { color: var(--muted); font-size: .82rem; line-height: 1.35; }
+    .hint {
+      color: var(--muted);
+      font-size: .81rem;
+      line-height: 1.38;
+      margin: 0;
+    }
+    .kbd {
+      border: 1px solid #36415a;
+      border-radius: 7px;
+      padding: 1px 6px;
+      font-size: .74rem;
+      color: #c6d5ff;
+      background: #151c2a;
+      white-space: nowrap;
+    }
 
-    @media (max-width: 980px) {
+    @media (max-width: 1180px) {
       .layout { grid-template-columns: 1fr; }
       .sidebar { border-left: 0; border-top: 1px solid var(--border); }
       .row { grid-template-columns: 1fr; }
@@ -146,11 +271,20 @@
     <div class="canvas-wrap">
       <div class="canvas" id="canvas">
         <div class="toolbar">
-          <button id="addHero">+ Hero Section</button>
-          <button id="addFeatures">+ Feature Grid</button>
-          <button id="addText">+ Text Block</button>
-          <button id="save">Save Local</button>
-          <button id="reset">Reset</button>
+          <div class="group">
+            <button id="addHero">+ Hero</button>
+            <button id="addFeatures">+ Features</button>
+            <button id="addText">+ Text</button>
+          </div>
+          <div class="group">
+            <button id="save" class="primary">Save local</button>
+            <button id="duplicate" class="subtle">Duplicate</button>
+            <button id="deleteBlock" class="danger">Delete</button>
+          </div>
+          <div class="group">
+            <button id="reset" class="subtle">Reset</button>
+          </div>
+          <div id="status">Ready</div>
         </div>
         <div id="blocks"></div>
       </div>
@@ -158,28 +292,35 @@
 
     <aside class="sidebar">
       <h3 class="section-title">msj-studio controls</h3>
-      <div class="field">
-        <label>Selected block background</label>
-        <input type="color" id="bgColor" value="#121722" />
+
+      <div class="card">
+        <div class="field">
+          <label>Selected block background</label>
+          <input type="color" id="bgColor" value="#121722" />
+        </div>
+        <div class="field">
+          <label>Text color</label>
+          <input type="color" id="textColor" value="#eef1f7" />
+        </div>
+        <div class="field">
+          <label>Padding (px)</label>
+          <input type="number" id="padding" value="18" min="0" max="120" />
+        </div>
       </div>
-      <div class="field">
-        <label>Text color</label>
-        <input type="color" id="textColor" value="#eef1f7" />
+
+      <div class="card">
+        <p class="hint" style="margin-bottom:8px;">Desktop flow optimized: click text to edit, click block header to select, drag with handle for precise reorder.</p>
+        <p class="hint" style="margin-bottom:8px;">Shortcuts: <span class="kbd">Ctrl/Cmd + S</span> save · <span class="kbd">Ctrl/Cmd + D</span> duplicate · <span class="kbd">Delete</span> remove selected</p>
+        <p class="hint">Autosave runs quietly after edits. Manual save still available.</p>
       </div>
-      <div class="field">
-        <label>Padding (px)</label>
-        <input type="number" id="padding" value="18" min="0" max="120" />
-      </div>
-      <div class="field">
-        <button id="deleteBlock">Delete selected block</button>
-      </div>
-      <p class="hint">Kinesis-style base layout loaded (structure only). Click text to edit, drag blocks to reorder, and save locally.</p>
     </aside>
   </div>
 
 <script>
-  const STORE = 'msj-studio-layout-v2';
+  const STORE = 'msj-studio-layout-v3';
   let selectedId = null;
+  let dragFromId = null;
+  let autosaveTimer = null;
 
   const defaultBlocks = [
     {
@@ -225,9 +366,30 @@
     catch { return null; }
   }
 
-  function save() {
+  function setStatus(text, kind = '') {
+    const el = document.getElementById('status');
+    el.textContent = text;
+    el.className = kind;
+  }
+
+  function save(silent = false) {
     localStorage.setItem(STORE, JSON.stringify(blocks));
-    alert('Saved locally ✅');
+    setStatus(silent ? 'Autosaved' : 'Saved locally ✅', 'ok');
+  }
+
+  function queueAutosave() {
+    clearTimeout(autosaveTimer);
+    setStatus('Editing…');
+    autosaveTimer = setTimeout(() => save(true), 500);
+  }
+
+  function cloneBlock(block) {
+    return {
+      id: crypto.randomUUID(),
+      type: block.type,
+      html: block.html,
+      style: { ...(block.style || {}) }
+    };
   }
 
   function render() {
@@ -235,42 +397,95 @@
     root.innerHTML = '';
 
     blocks.forEach((b, index) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'block-wrap';
+      wrap.dataset.id = b.id;
+
       const el = document.createElement('article');
       el.className = 'block' + (b.id === selectedId ? ' selected' : '');
       el.dataset.id = b.id;
-      el.draggable = true;
       el.style.background = b.style.background;
       el.style.color = b.style.color;
-      el.style.padding = (b.style.padding || 16) + 'px';
-      el.innerHTML = b.html;
 
-      el.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('editable')) {
-          selectedId = b.id;
-          syncSidebar();
-          render();
-        }
-      });
+      const head = document.createElement('div');
+      head.className = 'block-head';
+      head.draggable = true;
+      head.innerHTML = `<span class="meta">${b.type} section</span><span class="drag-handle">Drag ↕</span>`;
 
-      el.addEventListener('input', () => {
-        b.html = el.innerHTML;
-      });
+      const content = document.createElement('div');
+      content.className = 'content';
+      content.style.padding = (b.style.padding || 16) + 'px';
+      content.innerHTML = b.html;
 
-      el.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', index);
-      });
-      el.addEventListener('dragover', (e) => e.preventDefault());
-      el.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const from = Number(e.dataTransfer.getData('text/plain'));
-        const to = index;
-        if (from === to) return;
-        const moved = blocks.splice(from, 1)[0];
-        blocks.splice(to, 0, moved);
+      head.addEventListener('click', () => {
+        selectedId = b.id;
+        syncSidebar();
         render();
       });
 
-      root.appendChild(el);
+      content.addEventListener('click', () => {
+        selectedId = b.id;
+        syncSidebar();
+        render();
+      });
+
+      content.addEventListener('input', () => {
+        b.html = content.innerHTML;
+        queueAutosave();
+      });
+
+      head.addEventListener('dragstart', (e) => {
+        dragFromId = b.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', b.id);
+      });
+
+      wrap.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!dragFromId || dragFromId === b.id) return;
+        const rect = wrap.getBoundingClientRect();
+        const topHalf = e.clientY < rect.top + rect.height / 2;
+        wrap.classList.toggle('drag-over-top', topHalf);
+        wrap.classList.toggle('drag-over-bottom', !topHalf);
+      });
+
+      wrap.addEventListener('dragleave', () => {
+        wrap.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+
+      wrap.addEventListener('drop', (e) => {
+        e.preventDefault();
+        wrap.classList.remove('drag-over-top', 'drag-over-bottom');
+        const fromId = e.dataTransfer.getData('text/plain') || dragFromId;
+        if (!fromId || fromId === b.id) return;
+
+        const from = blocks.findIndex(x => x.id === fromId);
+        const to = blocks.findIndex(x => x.id === b.id);
+        if (from < 0 || to < 0 || from === to) return;
+
+        const rect = wrap.getBoundingClientRect();
+        const toAfter = e.clientY >= rect.top + rect.height / 2;
+
+        const [moved] = blocks.splice(from, 1);
+        let insertAt = toAfter ? to + 1 : to;
+        if (from < to) insertAt -= 1;
+        blocks.splice(insertAt, 0, moved);
+
+        selectedId = moved.id;
+        dragFromId = null;
+        render();
+        queueAutosave();
+      });
+
+      head.addEventListener('dragend', () => {
+        dragFromId = null;
+        document.querySelectorAll('.block-wrap').forEach(n => n.classList.remove('drag-over-top', 'drag-over-bottom'));
+      });
+
+      el.appendChild(head);
+      el.appendChild(content);
+      wrap.appendChild(el);
+      root.appendChild(wrap);
     });
 
     if (!selectedId && blocks[0]) {
@@ -300,70 +515,117 @@
     return '#' + m.slice(0,3).map(n => Number(n).toString(16).padStart(2,'0')).join('');
   }
 
-  document.getElementById('addHero').onclick = () => {
-    blocks.unshift({
-      id: crypto.randomUUID(),
-      type: 'hero',
-      html: '<h2 class="hero-title editable" contenteditable="true">New Hero Section</h2><p class="hero-sub editable" contenteditable="true">Edit this text...</p>',
-      style: { background: '#121722', color: '#eef1f7', padding: 22 }
-    });
-    selectedId = blocks[0].id;
-    render();
-  };
+  function addBlock(type) {
+    const templates = {
+      hero: {
+        id: crypto.randomUUID(),
+        type: 'hero',
+        html: '<h2 class="hero-title editable" contenteditable="true">New Hero Section</h2><p class="hero-sub editable" contenteditable="true">Edit this text...</p>',
+        style: { background: '#121722', color: '#eef1f7', padding: 22 }
+      },
+      features: {
+        id: crypto.randomUUID(),
+        type: 'features',
+        html: '<h3 class="editable" contenteditable="true">Feature Grid</h3><div class="row"><div class="chip editable" contenteditable="true">Feature 1</div><div class="chip editable" contenteditable="true">Feature 2</div><div class="chip editable" contenteditable="true">Feature 3</div></div>',
+        style: { background: '#121722', color: '#eef1f7', padding: 20 }
+      },
+      text: {
+        id: crypto.randomUUID(),
+        type: 'text',
+        html: '<p class="editable" contenteditable="true">New text block...</p>',
+        style: { background: '#121722', color: '#eef1f7', padding: 16 }
+      }
+    };
 
-  document.getElementById('addFeatures').onclick = () => {
-    blocks.push({
-      id: crypto.randomUUID(),
-      type: 'features',
-      html: '<h3 class="editable" contenteditable="true">Feature Grid</h3><div class="row"><div class="chip editable" contenteditable="true">Feature 1</div><div class="chip editable" contenteditable="true">Feature 2</div><div class="chip editable" contenteditable="true">Feature 3</div></div>',
-      style: { background: '#121722', color: '#eef1f7', padding: 20 }
-    });
+    blocks.push(templates[type]);
     selectedId = blocks[blocks.length - 1].id;
     render();
-  };
+    queueAutosave();
+  }
 
-  document.getElementById('addText').onclick = () => {
-    blocks.push({
-      id: crypto.randomUUID(),
-      type: 'text',
-      html: '<p class="editable" contenteditable="true">New text block...</p>',
-      style: { background: '#121722', color: '#eef1f7', padding: 16 }
-    });
-    selectedId = blocks[blocks.length - 1].id;
+  document.getElementById('addHero').onclick = () => addBlock('hero');
+  document.getElementById('addFeatures').onclick = () => addBlock('features');
+  document.getElementById('addText').onclick = () => addBlock('text');
+
+  document.getElementById('save').onclick = () => save(false);
+
+  document.getElementById('duplicate').onclick = () => {
+    const b = selected();
+    if (!b) return;
+    const i = blocks.findIndex(x => x.id === b.id);
+    if (i < 0) return;
+    const copy = cloneBlock(b);
+    blocks.splice(i + 1, 0, copy);
+    selectedId = copy.id;
     render();
+    queueAutosave();
   };
 
-  document.getElementById('save').onclick = save;
   document.getElementById('reset').onclick = () => {
     if (!confirm('Reset layout to default?')) return;
     localStorage.removeItem(STORE);
-    location.reload();
-  };
-
-  document.getElementById('deleteBlock').onclick = () => {
-    if (!selectedId) return;
-    blocks = blocks.filter(b => b.id !== selectedId);
+    blocks = structuredClone(defaultBlocks);
     selectedId = blocks[0]?.id || null;
     render();
+    save(true);
+    setStatus('Reset to default', 'ok');
   };
+
+  function deleteSelected() {
+    if (!selectedId) return;
+    const i = blocks.findIndex(b => b.id === selectedId);
+    if (i < 0) return;
+    blocks.splice(i, 1);
+    selectedId = blocks[Math.max(0, i - 1)]?.id || blocks[0]?.id || null;
+    render();
+    queueAutosave();
+  }
+
+  document.getElementById('deleteBlock').onclick = deleteSelected;
 
   document.getElementById('bgColor').addEventListener('input', (e) => {
     const b = selected(); if (!b) return;
     b.style.background = e.target.value;
-    render();
+    const blockNode = document.querySelector(`.block[data-id="${b.id}"]`);
+    if (blockNode) blockNode.style.background = b.style.background;
+    queueAutosave();
   });
+
   document.getElementById('textColor').addEventListener('input', (e) => {
     const b = selected(); if (!b) return;
     b.style.color = e.target.value;
-    render();
+    const blockNode = document.querySelector(`.block[data-id="${b.id}"]`);
+    if (blockNode) blockNode.style.color = b.style.color;
+    queueAutosave();
   });
+
   document.getElementById('padding').addEventListener('input', (e) => {
     const b = selected(); if (!b) return;
     b.style.padding = Number(e.target.value || 18);
-    render();
+    const contentNode = document.querySelector(`.block[data-id="${b.id}"] .content`);
+    if (contentNode) contentNode.style.padding = `${b.style.padding}px`;
+    queueAutosave();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const cmd = e.ctrlKey || e.metaKey;
+    if (cmd && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      save(false);
+    }
+    if (cmd && e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      document.getElementById('duplicate').click();
+    }
+    if (!cmd && e.key === 'Delete') {
+      const active = document.activeElement;
+      if (active && active.classList?.contains('editable')) return;
+      deleteSelected();
+    }
   });
 
   render();
+  setStatus('Ready');
 </script>
 </body>
 </html>

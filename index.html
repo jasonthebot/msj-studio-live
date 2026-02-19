@@ -8,39 +8,53 @@
     :root {
       --bg:#0b0d12;--panel:#11151d;--panel-2:#161b25;--text:#edf1f8;--muted:#97a1b5;
       --accent:#7aa2ff;--border:#252d3a;--danger:#ff7f8f;--ok:#63d6a2;
+      --canvas:#0b1018;--card:#151d2a;
     }
-    *{box-sizing:border-box} html,body{height:100%} body{margin:0;background:radial-gradient(circle at 20% -20%,#19253a,var(--bg) 43%);color:var(--text);font-family:Inter,system-ui,sans-serif}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:radial-gradient(circle at 20% -20%,#19253a,var(--bg) 43%);color:var(--text);font-family:Inter,system-ui,sans-serif}
     .layout{display:grid;grid-template-columns:minmax(860px,1fr) 360px;min-height:100vh}
     .canvas-wrap{padding:16px;position:relative}
     .device-switch{position:fixed;left:18px;bottom:18px;z-index:11;background:#111722;border:1px solid var(--border);border-radius:12px;padding:6px;display:flex;gap:6px}
-    .device-switch button{font-size:.76rem;padding:7px 10px}
-    .canvas-shell{border:1px solid var(--border);border-radius:14px;background:#0f141d;overflow:hidden;min-height:calc(100vh - 32px)}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--border);background:rgba(10,12,16,.92);position:sticky;top:0;z-index:8}
-    .group{display:inline-flex;gap:8px;align-items:center;padding-right:8px;border-right:1px solid #202838}
+    .device-switch button{font-size:.76rem;padding:7px 10px;transition:all .2s ease}
+    .device-switch button.active{background:#24324d;border-color:#3b5588}
+    .canvas-shell{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#0e131c,#0b1017);overflow:hidden;min-height:calc(100vh - 32px)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:rgba(9,12,18,.94);position:sticky;top:0;z-index:8}
+    .group{display:inline-flex;gap:8px;align-items:center;padding-right:10px;border-right:1px solid #202838}
     .group:last-child{border-right:0}
+    .group.secondary{opacity:.8}
+    .group.secondary button,.group.secondary select{background:#121926;color:#c7d0e2;border-color:#2a3448}
+    .group.primary-actions{margin-left:auto;padding:6px;background:#131d2c;border:1px solid #2e4269;border-radius:11px;box-shadow:0 8px 24px #00000035}
+    .hint{font-size:.72rem;color:#9fb0ce;padding:1px 6px;border:1px solid #354866;border-radius:999px}
     button,select,input,textarea{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:7px 9px;font:inherit}
-    button{cursor:pointer}
-    button:hover{border-color:var(--accent)} button.primary{background:linear-gradient(180deg,#2a3a5f,#1f2e4d);border-color:#3c538f}
+    button{cursor:pointer;transition:all .18s ease}
+    button:hover{border-color:var(--accent)}
+    button.primary{background:linear-gradient(180deg,#2a3a5f,#1f2e4d);border-color:#3c538f}
     button.danger{border-color:#603540;color:#ffbcc4}
-    #status{margin-left:auto;color:var(--muted);font-size:.82rem}
+    #status{color:var(--muted);font-size:.82rem;min-width:100px;text-align:right}
     #status.ok{color:var(--ok)}
-    .preview-wrap{padding:18px;display:flex;justify-content:center}
-    .preview-frame{width:min(100%,1200px);transition:width .18s ease}
+    .preview-wrap{padding:20px;background:var(--canvas);display:flex;justify-content:center;min-height:calc(100vh - 92px)}
+    .preview-frame{width:min(100%,1200px);transition:width .2s ease,transform .2s ease,opacity .2s ease}
+    .preview-frame.switching{transform:translateY(4px) scale(.994);opacity:.9}
     .preview-frame[data-device="tablet"]{width:min(100%,860px)}
     .preview-frame[data-device="mobile"]{width:min(100%,430px)}
-    .site{background:#0e131b;border:1px dashed #1f2838;border-radius:14px;overflow:hidden}
-    .blk{border:1px solid transparent;position:relative}
-    .blk.sel{border-color:var(--accent);box-shadow:0 0 0 2px #7aa2ff38 inset}
-    .blk-tools{position:absolute;top:6px;right:6px;z-index:4;display:flex;gap:4px;background:#101725cc;padding:4px;border-radius:8px;border:1px solid #2a3346}
+    .site{background:#0e131b;border:1px dashed #202a3a;border-radius:14px;overflow:hidden}
+    .blk{border:1px solid #26324755;position:relative;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+    .blk:hover{border-color:#3a4c6d88}
+    .blk.sel{border-color:#7aa2ff;box-shadow:0 0 0 1px #7aa2ff80,0 0 0 3px #7aa2ff26 inset;transform:translateY(-1px)}
+    .blk-tools{position:absolute;top:6px;right:6px;z-index:4;display:flex;gap:4px;background:#101725d9;padding:4px;border-radius:8px;border:1px solid #2a3346}
     .blk-tools button{padding:2px 6px;font-size:.72rem}
     .ed{outline:none}
     .ed:focus{box-shadow:0 0 0 2px #7aa2ff60;border-radius:6px}
-    .sidebar{border-left:1px solid var(--border);padding:14px;background:#10131a}
-    .card{border:1px solid var(--border);background:#121824;border-radius:12px;padding:11px;margin-bottom:10px}
-    .section-title{margin:0 0 9px;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em}
-    .field{margin-bottom:9px} .field label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:4px}
-    .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .mini{font-size:.78rem;color:var(--muted)}
+    .sidebar{border-left:1px solid var(--border);padding:14px;background:#10131a;display:flex;flex-direction:column;gap:10px}
+    .inspector-title{margin:0 0 2px;color:#c8d4eb;font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;font-weight:700}
+    .card{border:1px solid var(--border);background:#121824;border-radius:12px;padding:13px 12px;margin:0}
+    .card.sticky{position:sticky;top:10px;z-index:6;background:#152032;border-color:#334765}
+    .section-title{margin:0 0 11px;color:#b6c3da;font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+    .field{margin-bottom:12px}
+    .field:last-child{margin-bottom:0}
+    .field label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:5px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mini{font-size:.78rem;color:var(--muted);line-height:1.45}
     .chip{padding:2px 8px;background:#1b2434;border:1px solid var(--border);border-radius:999px;font-size:.73rem}
     .hide{display:none}
     @media (max-width:1200px){.layout{grid-template-columns:1fr}.sidebar{border-left:0;border-top:1px solid var(--border)}}
@@ -51,21 +65,23 @@
     <div class="canvas-wrap">
       <div class="canvas-shell">
         <div class="toolbar">
-          <div class="group">
-            <select id="addBlock">
+          <div class="group secondary">
+            <select id="addBlock" title="Add a new block">
               <option value="">+ Add block</option>
               <option value="header">Header/Nav</option><option value="hero">Hero</option><option value="text">Text</option>
               <option value="image">Image</option><option value="split">Split</option><option value="gallery">Gallery</option><option value="footer">Footer</option>
             </select>
-            <select id="templatePick"><option value="">Templates</option><option value="saas">SaaS</option><option value="portfolio">Portfolio</option><option value="landing">Landing</option></select>
+            <select id="templatePick" title="Switch template"><option value="">Templates</option><option value="saas">SaaS</option><option value="portfolio">Portfolio</option><option value="landing">Landing</option></select>
           </div>
-          <div class="group">
-            <button id="undo">Undo</button><button id="redo">Redo</button>
-            <button id="save" class="primary">Save local</button>
+          <div class="group secondary">
+            <button id="undo" title="Undo">Undo</button><button id="redo" title="Redo">Redo</button>
+            <button id="copyBtn" title="Copy exported HTML">Copy export</button>
           </div>
-          <div class="group">
-            <button id="modeBtn">Mode: Draft</button><button id="publishBtn">Publish snapshot</button>
-            <button id="exportBtn">Export HTML/CSS</button><button id="copyBtn">Copy export</button>
+          <div class="group primary-actions">
+            <button id="save" class="primary" title="Save project (⌘/Ctrl+S)">Save <span class="hint">⌘/Ctrl+S</span></button>
+            <button id="publishBtn" title="Publish current snapshot">Publish</button>
+            <button id="exportBtn" title="Export HTML/CSS bundle">Export</button>
+            <button id="modeBtn" title="Toggle draft/published mode">Mode: Draft</button>
           </div>
           <div id="status">Ready</div>
         </div>
@@ -76,8 +92,14 @@
       </div>
     </div>
     <aside class="sidebar">
-      <h3 class="section-title">Inspector</h3>
+      <h3 class="inspector-title">Inspector</h3>
+      <div class="card sticky">
+        <h4 class="section-title">Editing scope</h4>
+        <div class="field"><label><input id="applyAllDevices" type="checkbox" checked> Apply to all devices</label></div>
+        <div class="mini">Turn off to edit Tablet/Mobile styles independently for selected blocks.</div>
+      </div>
       <div class="card">
+        <h4 class="section-title">SEO</h4>
         <div class="field"><label>SEO title</label><input id="seoTitle"/></div>
         <div class="field"><label>Meta description</label><textarea id="seoDesc" rows="2"></textarea></div>
         <div class="field"><label>OG image URL</label><input id="seoOg"/></div>
@@ -94,7 +116,7 @@
       </div>
       <div class="card" id="blockCard"><h4 class="section-title">Selected block</h4><p class="mini">Pick a block to edit content/style.</p></div>
       <div class="card">
-        <div class="mini">Device editing: choose Desktop/Tablet/Mobile (bottom-left), then toggle link/unlink for per-device styles.</div>
+        <div class="mini">Device editing: switch Desktop/Tablet/Mobile (bottom-left). Duplicate selected block with <strong>⌘/Ctrl+D</strong>.</div>
       </div>
     </aside>
   </div>
@@ -137,11 +159,11 @@ function render(){
   site.style.maxWidth=state.global.maxWidth+'px'; site.style.margin='0 auto';
   const arr=blocksActive();
   site.innerHTML=arr.map((b,i)=>renderBlock(b,i)).join('');
-  bindInline(); syncInspector();
+  bindInline(); syncInspector(); syncDeviceButtons();
 }
 function renderBlock(b,i){
   const s=styleFor(b), sh=state.global.shadow?'box-shadow:0 10px 25px #00000040;':'';
-  const common=`background:${s.bg};color:${s.fg};padding:${(s.pad||22)*state.global.spacing}px;border-radius:${state.global.radius}px;${sh};text-align:${s.align||'left'};margin:10px;`;
+  const common=`background:${s.bg};color:${s.fg};padding:${(s.pad||22)*state.global.spacing}px;border-radius:${state.global.radius}px;${sh};text-align:${s.align||'left'};margin:12px;`;
   let html='';
   if(b.type==='header'){
     const links=b.content.links.split(',').map(x=>`<span class='chip'>${esc(x.trim())}</span>`).join('');
@@ -163,7 +185,7 @@ function renderBlock(b,i){
     const cols=b.content.cols.split('|').map(x=>`<div>${esc(x)}</div>`).join('');
     html=`<div style='display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px'><div><strong>${esc(b.content.logo)}</strong><p>${esc(b.content.text)}</p></div><div>${cols}</div><div>${b.content.social.split(',').map(x=>`<span class='chip'>${esc(x.trim())}</span>`).join('')}</div></div>`;
   }
-  const tools=state.mode==='draft'?`<div class='blk-tools'><button data-a='up' data-id='${b.id}'>↑</button><button data-a='down' data-id='${b.id}'>↓</button><button data-a='dup' data-id='${b.id}'>⧉</button><button data-a='del' data-id='${b.id}'>✕</button></div>`:'';
+  const tools=state.mode==='draft'?`<div class='blk-tools'><button data-a='up' data-id='${b.id}' title='Move up'>↑</button><button data-a='down' data-id='${b.id}' title='Move down'>↓</button><button data-a='dup' data-id='${b.id}' title='Duplicate (⌘/Ctrl+D)'>⧉</button><button data-a='del' data-id='${b.id}' title='Delete block'>✕</button></div>`:'';
   return `<section class='blk ${state.selected===b.id?'sel':''}' data-id='${b.id}' style='${common}'>${tools}${html}</section>`;
 }
 
@@ -177,7 +199,14 @@ function bindInline(){
 function syncInspector(){
   const b=state.blocks.find(x=>x.id===state.selected);
   const card=document.getElementById('blockCard');
-  if(!b){card.innerHTML='<h4 class="section-title">Selected block</h4><p class="mini">Pick a block to edit.</p>';return;}
+  const apply=document.getElementById('applyAllDevices');
+  apply.disabled=!b;
+  if(!b){
+    apply.checked=true;
+    card.innerHTML='<h4 class="section-title">Selected block</h4><p class="mini">Pick a block to edit.</p>';
+    return;
+  }
+  apply.checked=b.linkStyles;
   const s=styleFor(b);
   card.innerHTML=`<h4 class='section-title'>${b.type} block</h4>
     <div class='field'><label><input id='linkStyles' type='checkbox' ${b.linkStyles?'checked':''}> link styles across devices</label></div>
@@ -188,7 +217,7 @@ function syncInspector(){
     ${blockFields(b)}
   `;
   ['bg','fg','pad','align','fit','imgW'].forEach(id=>{const el=document.getElementById(id); if(!el)return; el.oninput=()=>{pushHist();updateStyle(b,idMap(id),id==='pad'||id==='imgW'?Number(el.value):el.value); render();queue();};});
-  document.getElementById('linkStyles').onchange=e=>{pushHist();b.linkStyles=e.target.checked;render();queue();};
+  document.getElementById('linkStyles').onchange=e=>{pushHist();b.linkStyles=e.target.checked;document.getElementById('applyAllDevices').checked=b.linkStyles;render();queue();};
   const up=document.getElementById('imgUpload'); if(up) up.onchange=e=>fileToData(e.target.files?.[0],src=>{pushHist();if(b.type==='gallery') b.content.items.push(src); else b.content.img=src,b.content.src=src; render();queue();});
   bindBlockInputs(b);
 }
@@ -220,7 +249,34 @@ function blocksToHTML(arr){return arr.map(b=>`<section style="padding:${(b.style
 exportBtn.onclick=()=>{const blob=new Blob([exported()],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='msj-export.html';a.click();URL.revokeObjectURL(a.href)};
 copyBtn.onclick=async()=>{await navigator.clipboard.writeText(exported());status('Export copied', 'ok')};
 ['seoTitle','seoDesc','seoOg','gType','gSpace','gMax','gRadius','gShadow'].forEach(id=>window[id].oninput=()=>{pushHist();state.seo.title=seoTitle.value;state.seo.description=seoDesc.value;state.seo.og=seoOg.value;state.global.typeScale=+gType.value||1;state.global.spacing=+gSpace.value||1;state.global.maxWidth=+gMax.value||1120;state.global.radius=+gRadius.value||14;state.global.shadow=gShadow.checked;render();queue();});
-document.querySelectorAll('.device-switch button').forEach(b=>b.onclick=()=>{state.device=b.dataset.d;render();});
+document.querySelectorAll('.device-switch button').forEach(b=>b.onclick=()=>switchDevice(b.dataset.d));
+
+document.getElementById('applyAllDevices').onchange=e=>{const b=state.blocks.find(x=>x.id===state.selected);if(!b)return;pushHist();b.linkStyles=e.target.checked;render();queue();};
+
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey;
+  if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();persist(false);}
+  if(mod&&e.key.toLowerCase()==='d'){e.preventDefault();duplicateSelected();}
+});
+
+function duplicateSelected(){
+  const id=state.selected; if(!id) return;
+  const arr=state.blocks; const i=arr.findIndex(b=>b.id===id); if(i<0) return;
+  pushHist(); arr.splice(i+1,0,deep({...arr[i],id:uid()})); state.selected=arr[i+1].id; render(); queue(); status('Block duplicated', 'ok');
+}
+
+function switchDevice(next){
+  if(!next||next===state.device)return;
+  const frame=document.getElementById('previewFrame');
+  frame.classList.add('switching');
+  state.device=next;
+  render();
+  setTimeout(()=>frame.classList.remove('switching'),170);
+}
+
+function syncDeviceButtons(){
+  document.querySelectorAll('.device-switch button').forEach(btn=>btn.classList.toggle('active',btn.dataset.d===state.device));
+}
 
 function syncTop(){seoTitle.value=state.seo.title;seoDesc.value=state.seo.description;seoOg.value=state.seo.og;gType.value=state.global.typeScale;gSpace.value=state.global.spacing;gMax.value=state.global.maxWidth;gRadius.value=state.global.radius;gShadow.checked=state.global.shadow;modeBtn.textContent='Mode: '+(state.mode==='draft'?'Draft':'Published')}
 syncTop(); render();

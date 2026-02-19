@@ -1,6 +1,6 @@
-# msj-studio — Phase Beta
+# msj-studio — Editorial Builder
 
-Canonical source: `index.html` (single-file local-first studio).
+Canonical source: `index.html` (single-file, local-first studio).
 
 ## Run locally
 
@@ -10,45 +10,55 @@ python3 -m http.server 4173
 # open http://localhost:4173
 ```
 
-You can also double-click/open `index.html` directly, but local server is recommended.
+## New: free drag + resize controls
 
-## Beta features shipped
+In Draft mode, you now have a second interaction toggle:
 
-- Header/Nav builder (logo/title/nav links/CTA + logo position)
-- Hero presets (split left/right, background image)
-- Content blocks (text/image/split/gallery/footer)
-- Media upload from device (data URL local save)
-- Block operations: add, duplicate, move up/down, delete
+- **Tool: Edit** → safe text/content editing (inline typing stays usable)
+- **Tool: Move/Resize** → free-positioning + resize handles
+
+### Free-positioning (in-section)
+
+1. Select a section.
+2. Click **Tool: Move/Resize** in the top bar.
+3. Drag key elements (headline, text blocks, chips/buttons, media where supported).
+4. Elements are clamped to section bounds.
+5. Positions are persisted in local save.
+
+### Snapping/grid
+
+- Use **Snap: On/Off** in top bar.
+- When on, drag/resize snaps to an 8px grid.
+
+### Resizing
+
+- **Section resize:** select section in Move/Resize mode and drag the visible bottom-right section handle.
+- **Media resize:** in supported sections (Hero/Split media), drag the media resize handle.
+- Size values are persisted in local save.
+
+## Existing builder features
+
+- Section add/duplicate/reorder/delete
+- Responsive device preview (desktop/tablet/mobile)
+- Per-section spacing/type controls
+- Theme tokens (color, type scale, spacing, radius, shadows)
+- Reusable section library
 - Undo/redo + autosave localStorage
-- Template library: SaaS, Portfolio, Landing
-- Device switcher: Desktop / Tablet / Mobile
-- Per-device style editing + link/unlink style behavior
-- Global scales: typography, spacing, max width, radius, shadows
-- Mobile/tablet preview frame width
-- Draft vs Published local mode (publish snapshot)
-- SEO fields (title/meta description/OG image)
-- Export clean HTML/CSS (download and copy)
+- Draft/Published local snapshot mode
+- SEO fields + export HTML
 
 ## Save model
 
-Everything is local in browser `localStorage` key `msj_beta_v1`.
+Everything is local in browser `localStorage` key `msj_editorial_v3`.
 No backend required.
 
-## Publish to GitHub / Vercel
+## Deploy
 
 Use the repo helper script:
 
 ```bash
 cd /home/jason/.openclaw/workspace/msj-studio
-./publish.sh "feat: phase beta website builder release"
+./publish.sh "feat: drag-resize free positioning controls"
 ```
 
-That script stages canonical release docs/files, commits, pushes current branch, and Vercel auto-deploy picks it up.
-
-## Manual git (if needed)
-
-```bash
-git add index.html README.md PHASE_BETA.md
-git commit -m "feat: phase beta studio"
-git push origin main
-```
+This stages, commits, pushes, and triggers deploy via your existing setup.

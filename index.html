@@ -19,6 +19,21 @@
       --ok:#2c7a51;
       --shadow:0 8px 30px rgba(29,20,10,.08);
     }
+
+    body.dark{
+      --bg:#14161c;
+      --shell:#111318;
+      --panel:#1a1d25;
+      --panel-soft:#1f2430;
+      --line:#2e3442;
+      --line-strong:#3b4355;
+      --text:#eceff7;
+      --muted:#a7aec0;
+      --accent:#7da2ff;
+      --accent-soft:#223055;
+      --ok:#65d89a;
+      --shadow:0 8px 30px rgba(0,0,0,.35);
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:radial-gradient(circle at 10% -20%,#fff,#f2ede3 52%,#ede8de);color:var(--text);overflow:hidden}
@@ -66,6 +81,12 @@
     .section-tools button{padding:3px 7px;font-size:.74rem}
     .editable{outline:none}
     .editable:focus{box-shadow:0 0 0 2px #dfe7ff;border-radius:6px}
+    .draggable{position:relative;display:inline-block}
+    .draggable.drag-on{cursor:grab;user-select:none;touch-action:none}
+    .draggable.dragging{cursor:grabbing;opacity:.9}
+    .draggable.selected-item{outline:1px dashed var(--accent);outline-offset:2px}
+    .resize-handle{position:absolute;right:-6px;bottom:-6px;width:14px;height:14px;border-radius:3px;background:var(--accent);border:2px solid #fff;cursor:nwse-resize;z-index:8;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+    .section-resize-handle{position:absolute;right:6px;bottom:6px;width:16px;height:16px;border-radius:4px;background:var(--accent);border:2px solid #fff;cursor:nwse-resize;z-index:9}
 
     .inspector{grid-column:3;grid-row:2;border-left:1px solid var(--line);background:#f9f6f0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
     .inspector h3{margin:2px 0 0;font-size:.79rem;text-transform:uppercase;letter-spacing:.14em;color:#4a453d}
@@ -79,6 +100,24 @@
     .mini{font-size:.78rem;color:var(--muted);line-height:1.45}
     .chip{display:inline-flex;padding:4px 10px;border:1px solid #ddd2c2;border-radius:999px;background:#fff9ef;font-size:.75rem;margin:2px 4px 2px 0}
     .token-preset{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+
+    .theme-toggle{position:fixed;right:14px;bottom:14px;z-index:40;border:1px solid var(--line-strong);background:var(--panel);border-radius:999px;padding:8px 11px;font-size:.88rem;box-shadow:var(--shadow)}
+
+    body.dark{background:radial-gradient(circle at 10% -20%,#1d2230,#121722 54%,#0f141d)}
+    body.dark button{background:#1a1e27;color:var(--text)}
+    body.dark input, body.dark select, body.dark textarea{background:#161a22;color:var(--text)}
+    body.dark .rail{background:linear-gradient(180deg,#151922,#121620)}
+    body.dark .logo{background:#171b24}
+    body.dark .topbar{background:rgba(17,19,24,.92)}
+    body.dark .context{background:#181c24;color:#cfd6e7}
+    body.dark .stage{background:#121620}
+    body.dark .create-strip{background:#151a22}
+    body.dark .site{background:#151922;border-color:#2f3748}
+    body.dark .section{border-color:#2d3545;background:#151a23}
+    body.dark .section-tools{background:rgba(24,27,35,.95);border-color:#374155}
+    body.dark .inspector{background:#141924}
+    body.dark .chip{background:#1b2230;border-color:#36405a}
 
     @media (max-width:1320px){
       .app{grid-template-columns:76px 1fr}
@@ -112,6 +151,10 @@
     </div>
     <div class="seg">
       <button id="undo">Undo</button><button id="redo">Redo</button>
+    </div>
+    <div class="seg">
+      <button id="toolModeBtn">Tool: Edit</button>
+      <button id="snapBtn">Snap: On</button>
     </div>
     <div class="seg grow">
       <button id="copyBtn" class="ghost">Copy export</button>
@@ -199,9 +242,10 @@
     <section class="panel"><div class="mini">Shortcuts: <strong>⌘/Ctrl + S</strong> save, <strong>⌘/Ctrl + D</strong> duplicate section.</div></section>
   </aside>
 </div>
+<button id="themeToggle" class="theme-toggle" title="Toggle day/night">🌙 Night</button>
 
 <script>
-const STORE='msj_editorial_v2';
+const STORE='msj_editorial_v3';
 const REUSABLE='msj_editorial_reusable_v1';
 const deep=o=>JSON.parse(JSON.stringify(o));
 const uid=()=>crypto.randomUUID();
@@ -220,6 +264,7 @@ function mk(type){
     id:uid(),type,variant:'default',
     responsive:{linkSpace:true,linkType:true,space:{desktop:44,tablet:34,mobile:24},font:{desktop:1,tablet:.96,mobile:.92}},
     style:{bg:'#fffdf8',fg:'#1f1d19',align:'left',radius:16,overlay:0,fit:'cover',imgW:100,eyebrow:true,ctaStyle:'solid'},
+    layout:{box:{w:null,h:null},items:{},media:{w:null,h:null}},
     content:{}
   };
   if(type==='header') return {...base,variant:'minimal',content:{brand:'MSJ Studio',links:'Work,About,Journal,Contact',cta:'Start project'}};
@@ -235,7 +280,7 @@ function mk(type){
 
 function initial(){
   return {
-    mode:'draft',device:'desktop',zoom:1,selected:null,published:null,
+    mode:'draft',device:'desktop',zoom:1,selected:null,published:null,railPanel:'create',toolMode:'edit',snapToGrid:true,gridSize:8,
     seo:{title:'msj-studio editorial site',description:'Built in msj-studio',og:''},
     tokens:deep(PRESET_TOKENS.linen),
     sections:[mk('header'),mk('hero'),mk('feature'),mk('story'),mk('cta'),mk('footer')]
@@ -243,6 +288,10 @@ function initial(){
 }
 
 let state=load()||initial();
+state.toolMode=state.toolMode||'edit';
+if(state.snapToGrid===undefined) state.snapToGrid=true;
+if(!state.gridSize) state.gridSize=8;
+(state.sections||[]).forEach(s=>{if(!s.layout)s.layout={box:{w:null,h:null},items:{},media:{w:null,h:null}}});
 let history=[],future=[],autosave;
 
 function load(){try{return JSON.parse(localStorage.getItem(STORE))}catch{return null}}
@@ -265,8 +314,32 @@ function applyTokensToUI(){
   document.documentElement.style.setProperty('--accent-soft',t.accent+'22');
 }
 
+
+function updateRailPanel(){
+  const p=state.railPanel||'create';
+  const show=(id,on,display='block')=>{const el=document.getElementById(id); if(!el) return; el.style.display=on?display:'none';};
+  show('createStrip', p==='create', 'flex');
+  show('scopePanel', p==='create' || p==='content');
+  show('sectionCard', p==='create' || p==='content');
+  show('tokenPanel', p==='theme');
+  show('settingsPanel', p==='settings');
+}
+
 function spaceFor(s){return (s.responsive.linkSpace? s.responsive.space.desktop : s.responsive.space[state.device]) || s.responsive.space.desktop || 40}
 function fontFor(s){return (s.responsive.linkType? s.responsive.font.desktop : s.responsive.font[state.device]) || s.responsive.font.desktop || 1}
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function snap(n){return state.snapToGrid?Math.round(n/state.gridSize)*state.gridSize:n}
+function itemLayout(s,key){if(!s.layout)s.layout={box:{w:null,h:null},items:{},media:{w:null,h:null}};if(!s.layout.items[key])s.layout.items[key]={x:0,y:0,w:null,h:null};return s.layout.items[key]}
+function dragWrap(s,key,html,opts={}){
+  const l=itemLayout(s,key);
+  const tx=Number(l.x)||0,ty=Number(l.y)||0;
+  const w=l.w||opts.w||null,h=l.h||opts.h||null;
+  const extra=`transform:translate(${tx}px,${ty}px);${w?`width:${w}px;`:''}${h?`height:${h}px;`:''}${opts.block?'display:block;':''}`;
+  const canDrag=state.mode==='draft'&&state.toolMode==='move';
+  const cls=`draggable ${canDrag?'drag-on':''}`;
+  const resize=(canDrag&&opts.resizable)?`<span class='resize-handle' data-resize='item' data-id='${s.id}' data-key='${key}'></span>`:'';
+  return `<div class='${cls}' data-draggable='item' data-id='${s.id}' data-key='${key}' style='${extra}'>${html}${resize}</div>`;
+}
 
 function render(){
   applyTokensToUI();
@@ -291,22 +364,33 @@ function sectionShell(s,inner){
   const pad=spaceFor(s)*state.tokens.spacing;
   const fs=fontFor(s)*state.tokens.typeScale;
   const shadow=state.tokens.shadow?'box-shadow:0 14px 36px rgba(28,19,6,.08);':'';
-  const style=`background:${s.style.bg};color:${s.style.fg};padding:${pad}px;border-radius:${s.style.radius||state.tokens.radius}px;text-align:${s.style.align};font-size:${fs}rem;${shadow}`;
+  const bw=s.layout?.box?.w?`width:${s.layout.box.w}px;max-width:100%;`:'';
+  const bh=s.layout?.box?.h?`min-height:${s.layout.box.h}px;`:'';
+  const style=`background:${s.style.bg};color:${s.style.fg};padding:${pad}px;border-radius:${s.style.radius||state.tokens.radius}px;text-align:${s.style.align};font-size:${fs}rem;${shadow}${bw}${bh}`;
   const tools=state.mode==='draft'?`<div class='section-tools'><button data-act='up' data-id='${s.id}'>↑</button><button data-act='down' data-id='${s.id}'>↓</button><button data-act='dup' data-id='${s.id}'>⧉</button><button data-act='del' data-id='${s.id}'>✕</button></div>`:'';
-  return `<section class='section ${state.selected===s.id?'sel':''}' data-id='${s.id}' style='${style}'>${tools}${inner}</section>`;
+  const canResize=state.mode==='draft'&&state.toolMode==='move'&&state.selected===s.id;
+  const resize=canResize?`<span class='section-resize-handle' data-resize='section' data-id='${s.id}'></span>`:'';
+  return `<section class='section ${state.selected===s.id?'sel':''}' data-id='${s.id}' style='${style}'>${tools}${inner}${resize}</section>`;
 }
 
 function renderSection(s){
   const c=s.content;
   if(s.type==='header'){
     const links=(c.links||'').split(',').map(v=>`<span class='chip'>${esc(v.trim())}</span>`).join('');
-    const html=`<div style='display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap'><strong>${esc(c.brand)}</strong><div>${links}</div><button>${esc(c.cta)}</button></div>`;
+    const html=`<div style='display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap'>${dragWrap(s,'brand',`<strong>${esc(c.brand)}</strong>`)}${dragWrap(s,'chips',`<div>${links}</div>`)}${dragWrap(s,'cta',`<button>${esc(c.cta)}</button>`)}</div>`;
     return sectionShell(s,html);
   }
   if(s.type==='hero'){
-    const eyebrow=s.style.eyebrow?`<div class='mini'>${esc(c.eyebrow||'')}</div>`:'';
-    const text=`${eyebrow}<h1 class='editable' contenteditable='${state.mode==='draft'}' data-id='${s.id}' data-field='headline' style='margin:.3rem 0 .5rem;font-size:${2.3*state.tokens.typeScale}rem;line-height:1.08'>${esc(c.headline)}</h1><p class='editable' contenteditable='${state.mode==='draft'}' data-id='${s.id}' data-field='sub'>${esc(c.sub)}</p><div style='display:flex;gap:8px;flex-wrap:wrap'><button>${esc(c.cta)}</button><button style='background:transparent'>${esc(c.cta2)}</button></div>`;
-    const img=c.img?`<img src='${esc(c.img)}' style='width:${s.style.imgW}%;max-width:100%;min-height:220px;border-radius:${state.tokens.radius}px;object-fit:${s.style.fit};background:#efe7db'>`:'';
+    const canEdit=state.mode==='draft'&&state.toolMode==='edit';
+    const eyebrow=s.style.eyebrow?dragWrap(s,'eyebrow',`<div class='mini'>${esc(c.eyebrow||'')}</div>`):'';
+    const head=dragWrap(s,'headline',`<h1 class='editable' contenteditable='${canEdit}' data-id='${s.id}' data-field='headline' style='margin:.3rem 0 .5rem;font-size:${2.3*state.tokens.typeScale}rem;line-height:1.08'>${esc(c.headline)}</h1>`,{block:true});
+    const sub=dragWrap(s,'sub',`<p class='editable' contenteditable='${canEdit}' data-id='${s.id}' data-field='sub'>${esc(c.sub)}</p>`,{block:true});
+    const ctas=dragWrap(s,'ctas',`<div style='display:flex;gap:8px;flex-wrap:wrap'><button>${esc(c.cta)}</button><button style='background:transparent'>${esc(c.cta2)}</button></div>`);
+    const text=`${eyebrow}${head}${sub}${ctas}`;
+    const mW=s.layout?.media?.w?`width:${s.layout.media.w}px;max-width:100%;`:`width:${s.style.imgW}%;max-width:100%;`;
+    const mH=s.layout?.media?.h?`height:${s.layout.media.h}px;`:'min-height:220px;';
+    const imgInner=c.img?`<img src='${esc(c.img)}' style='${mW}${mH}border-radius:${state.tokens.radius}px;object-fit:${s.style.fit};background:#efe7db'>`:'';
+    const img=dragWrap(s,'media',imgInner,{resizable:!!c.img});
     let html='';
     if(s.variant==='background' && c.img){ html=`<div style='background:linear-gradient(rgba(255,255,255,.65),rgba(255,255,255,.65)), url(${esc(c.img)}) center/cover; padding:42px;border-radius:${state.tokens.radius}px'>${text}</div>`; }
     else html=`<div style='display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center'>${s.variant==='split-left'?img+text:text+img}</div>`;
@@ -315,32 +399,38 @@ function renderSection(s){
   if(s.type==='feature'){
     const items=(c.items||'').split('|').map(v=>`<div style='padding:12px;border:1px solid #e8dece;border-radius:${state.tokens.radius-2}px;background:#fff'>${esc(v.trim())}</div>`).join('');
     const cols=s.variant==='cards-2'?2:(s.variant==='cards-4'?4:3);
-    return sectionShell(s,`<h2>${esc(c.title)}</h2><div style='display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:10px'>${items}</div>`);
+    return sectionShell(s,`${dragWrap(s,'title',`<h2>${esc(c.title)}</h2>`,{block:true})}<div style='display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:10px'>${dragWrap(s,'items',items,{block:true})}</div>`);
   }
-  if(s.type==='story') return sectionShell(s,`<h2 class='editable' contenteditable='${state.mode==='draft'}' data-id='${s.id}' data-field='title'>${esc(c.title)}</h2><p class='editable' contenteditable='${state.mode==='draft'}' data-id='${s.id}' data-field='body' style='max-width:70ch;line-height:1.7'>${esc(c.body)}</p>`);
+  if(s.type==='story') {
+    const canEdit=state.mode==='draft'&&state.toolMode==='edit';
+    return sectionShell(s,`${dragWrap(s,'title',`<h2 class='editable' contenteditable='${canEdit}' data-id='${s.id}' data-field='title'>${esc(c.title)}</h2>`,{block:true})}${dragWrap(s,'body',`<p class='editable' contenteditable='${canEdit}' data-id='${s.id}' data-field='body' style='max-width:70ch;line-height:1.7'>${esc(c.body)}</p>`,{block:true})}`);
+  }
   if(s.type==='split'){
-    const media=c.img?`<img src='${esc(c.img)}' style='width:${s.style.imgW}%;max-width:100%;min-height:190px;border-radius:${state.tokens.radius}px;object-fit:${s.style.fit};background:#eee'>`:"<div style='height:200px;background:#efe8dc;border-radius:12px'></div>";
-    const text=`<div><h3>${esc(c.title)}</h3><p>${esc(c.body)}</p></div>`;
+    const mW=s.layout?.media?.w?`width:${s.layout.media.w}px;max-width:100%;`:`width:${s.style.imgW}%;max-width:100%;`;
+    const mH=s.layout?.media?.h?`height:${s.layout.media.h}px;`:'min-height:190px;';
+    const mediaInner=c.img?`<img src='${esc(c.img)}' style='${mW}${mH}border-radius:${state.tokens.radius}px;object-fit:${s.style.fit};background:#eee'>`:"<div style='height:200px;background:#efe8dc;border-radius:12px'></div>";
+    const media=dragWrap(s,'media',mediaInner,{resizable:!!c.img});
+    const text=dragWrap(s,'text',`<div><h3>${esc(c.title)}</h3><p>${esc(c.body)}</p></div>`,{block:true});
     return sectionShell(s,`<div style='display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center'>${c.swap?media+text:text+media}</div>`);
   }
-  if(s.type==='quote') return sectionShell(s,`<blockquote style='font-size:${1.5*state.tokens.typeScale}rem;margin:0 0 8px;line-height:1.4'>${esc(c.quote)}</blockquote><div class='mini'>${esc(c.author)}</div>`);
+  if(s.type==='quote') return sectionShell(s,`${dragWrap(s,'quote',`<blockquote style='font-size:${1.5*state.tokens.typeScale}rem;margin:0 0 8px;line-height:1.4'>${esc(c.quote)}</blockquote>`,{block:true})}${dragWrap(s,'author',`<div class='mini'>${esc(c.author)}</div>`)}`);
   if(s.type==='gallery'){
     const cols=s.variant==='two-up'?2:(s.variant==='four-up'?4:3);
     const tiles=(c.items||[]).map(src=>`<img src='${esc(src)}' style='width:100%;aspect-ratio:1/1;object-fit:${s.style.fit};border-radius:${state.tokens.radius-3}px;background:#eee'>`).join('');
     return sectionShell(s,`<div style='display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:10px'>${tiles||"<div class='mini'>Upload images from inspector.</div>"}</div>`);
   }
-  if(s.type==='cta') return sectionShell(s,`<h2>${esc(c.title)}</h2><p>${esc(c.sub)}</p><button>${esc(c.cta)}</button>`);
+  if(s.type==='cta') return sectionShell(s,`${dragWrap(s,'title',`<h2>${esc(c.title)}</h2>`,{block:true})}${dragWrap(s,'sub',`<p>${esc(c.sub)}</p>`,{block:true})}${dragWrap(s,'button',`<button>${esc(c.cta)}</button>`)}`);
   if(s.type==='footer'){
     const links=(c.links||'').split('|').map(v=>`<div>${esc(v.trim())}</div>`).join('');
     const social=(c.social||'').split(',').map(v=>`<span class='chip'>${esc(v.trim())}</span>`).join('');
-    return sectionShell(s,`<div style='display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px'><div><strong>${esc(c.brand)}</strong><p>${esc(c.text)}</p></div><div>${links}</div><div>${social}</div></div>`);
+    return sectionShell(s,`<div style='display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px'><div>${dragWrap(s,'brand',`<strong>${esc(c.brand)}</strong>`)}${dragWrap(s,'text',`<p>${esc(c.text)}</p>`)}</div><div>${dragWrap(s,'links',links,{block:true})}</div><div>${dragWrap(s,'social',social,{block:true})}</div></div>`);
   }
   return sectionShell(s,'');
 }
 
 function bindCanvasEvents(){
   document.querySelectorAll('.section').forEach(el=>el.onclick=e=>{
-    if(e.target.closest('button[data-act]'))return;
+    if(e.target.closest('button[data-act],.resize-handle,.section-resize-handle'))return;
     state.selected=el.dataset.id;
     render();
   });
@@ -359,6 +449,72 @@ function bindCanvasEvents(){
   document.querySelectorAll('.editable').forEach(ed=>ed.oninput=()=>{
     const sec=sectionById(ed.dataset.id); if(!sec)return;
     pushHist(); sec.content[ed.dataset.field]=ed.textContent; queue();
+  });
+
+  if(!(state.mode==='draft'&&state.toolMode==='move')) return;
+
+  document.querySelectorAll('[data-draggable="item"]').forEach(el=>el.onpointerdown=e=>{
+    if(e.target.closest('.resize-handle')) return;
+    e.preventDefault();
+    const sec=sectionById(el.dataset.id); if(!sec)return;
+    const key=el.dataset.key; const l=itemLayout(sec,key);
+    const secEl=el.closest('.section'); if(!secEl) return;
+    const startX=e.clientX,startY=e.clientY;
+    const sx=l.x||0, sy=l.y||0;
+    el.classList.add('dragging');
+    const onMove=ev=>{
+      const nextX=snap(sx + (ev.clientX-startX));
+      const nextY=snap(sy + (ev.clientY-startY));
+      const secRect=secEl.getBoundingClientRect();
+      const itemRect=el.getBoundingClientRect();
+      const minX=-(itemRect.left-secRect.left)+sx;
+      const maxX=(secRect.right-itemRect.right)+sx;
+      const minY=-(itemRect.top-secRect.top)+sy;
+      const maxY=(secRect.bottom-itemRect.bottom)+sy;
+      l.x=clamp(nextX,minX,maxX);
+      l.y=clamp(nextY,minY,maxY);
+      el.style.transform=`translate(${l.x}px,${l.y}px)`;
+    };
+    const onUp=()=>{el.classList.remove('dragging');window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);queue();saveSilent('Layout updated');};
+    pushHist();
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+  });
+
+  document.querySelectorAll('.section-resize-handle').forEach(h=>h.onpointerdown=e=>{
+    e.preventDefault();e.stopPropagation();
+    const sec=sectionById(h.dataset.id); if(!sec)return;
+    const secEl=h.closest('.section'); if(!secEl)return;
+    const startW=secEl.offsetWidth,startH=secEl.offsetHeight,startX=e.clientX,startY=e.clientY;
+    pushHist();
+    const onMove=ev=>{
+      sec.layout.box.w=Math.max(260, snap(startW + (ev.clientX-startX)));
+      sec.layout.box.h=Math.max(120, snap(startH + (ev.clientY-startY)));
+      secEl.style.width=sec.layout.box.w+'px';
+      secEl.style.minHeight=sec.layout.box.h+'px';
+    };
+    const onUp=()=>{window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);render();queue();};
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
+  });
+
+  document.querySelectorAll('.resize-handle').forEach(h=>h.onpointerdown=e=>{
+    e.preventDefault();e.stopPropagation();
+    const sec=sectionById(h.dataset.id); if(!sec)return;
+    const key=h.dataset.key;const l=itemLayout(sec,key);
+    const host=h.parentElement; if(!host)return;
+    const rect=host.getBoundingClientRect();
+    const startW=rect.width,startH=rect.height,startX=e.clientX,startY=e.clientY;
+    pushHist();
+    const onMove=ev=>{
+      l.w=Math.max(80,snap(startW + (ev.clientX-startX)));
+      l.h=Math.max(60,snap(startH + (ev.clientY-startY)));
+      if(key==='media'&&sec.layout) sec.layout.media={w:l.w,h:l.h};
+      host.style.width=l.w+'px';host.style.height=l.h+'px';
+    };
+    const onUp=()=>{window.removeEventListener('pointermove',onMove);window.removeEventListener('pointerup',onUp);render();queue();};
+    window.addEventListener('pointermove',onMove);
+    window.addEventListener('pointerup',onUp);
   });
 }
 
@@ -448,6 +604,8 @@ function syncTop(){
   tkBg.value=hex(state.tokens.bg);tkPanel.value=hex(state.tokens.panel);tkText.value=hex(state.tokens.text);tkAccent.value=hex(state.tokens.accent);
   tkType.value=state.tokens.typeScale;tkSpace.value=state.tokens.spacing;tkMax.value=state.tokens.maxWidth;tkRadius.value=state.tokens.radius;tkShadow.checked=state.tokens.shadow;
   modeBtn.textContent='Mode: '+(state.mode==='draft'?'Draft':'Published');
+  toolModeBtn.textContent='Tool: '+(state.toolMode==='edit'?'Edit':'Move/Resize');
+  snapBtn.textContent='Snap: '+(state.snapToGrid?'On':'Off');
 }
 
 function syncDeviceButtons(){document.querySelectorAll('#deviceSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.d===state.device))}
@@ -506,6 +664,8 @@ insertReusable.onchange=e=>{
 save.onclick=()=>saveSilent('Saved local ✅');
 publishBtn.onclick=publish;
 modeBtn.onclick=()=>{state.mode=state.mode==='draft'?'published':'draft';render();saveSilent('Mode switched')};
+toolModeBtn.onclick=()=>mutate(()=>state.toolMode=state.toolMode==='edit'?'move':'edit');
+snapBtn.onclick=()=>mutate(()=>state.snapToGrid=!state.snapToGrid);
 undo.onclick=()=>{if(!history.length)return;future.push(JSON.stringify(state));state=JSON.parse(history.pop());render();saveSilent('Undo')};
 redo.onclick=()=>{if(!future.length)return;history.push(JSON.stringify(state));state=JSON.parse(future.pop());render();saveSilent('Redo')};
 zoomIn.onclick=()=>{state.zoom=Math.min(1.6,+(state.zoom+0.1).toFixed(2));render()};
@@ -524,9 +684,9 @@ linkResponsive.onchange=e=>{const sec=sectionById(state.selected);if(!sec)return
 document.querySelectorAll('[data-token-preset]').forEach(btn=>btn.onclick=()=>mutate(()=>state.tokens=deep(PRESET_TOKENS[btn.dataset.tokenPreset])));
 document.querySelectorAll('#deviceSwitch button').forEach(btn=>btn.onclick=()=>{state.device=btn.dataset.d;render()});
 document.querySelectorAll('.rail-btn').forEach(btn=>btn.onclick=()=>{
-  document.querySelectorAll('.rail-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
-  const map={create:'createStrip',content:'sectionCard',theme:'tokenPanel',settings:'settingsPanel'};
-  const target=document.getElementById(map[btn.dataset.panel]);if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  state.railPanel=btn.dataset.panel;
+  document.querySelectorAll('.rail-btn').forEach(x=>x.classList.toggle('active',x===btn));
+  updateRailPanel();
 });
 
 document.addEventListener('keydown',e=>{
@@ -534,6 +694,16 @@ document.addEventListener('keydown',e=>{
   if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();saveSilent('Saved local ✅')}
   if(mod&&e.key.toLowerCase()==='d'){e.preventDefault();duplicateSelected()}
 });
+
+const THEME_KEY='msj_editor_theme';
+function applyTheme(mode){
+  const m=(mode==='dark')?'dark':'light';
+  document.body.classList.toggle('dark',m==='dark');
+  themeToggle.textContent=m==='dark'?'☀️ Day':'🌙 Night';
+  localStorage.setItem(THEME_KEY,m);
+}
+themeToggle.onclick=()=>applyTheme(document.body.classList.contains('dark')?'light':'dark');
+applyTheme(localStorage.getItem(THEME_KEY)||'light');
 
 render();
 </script>

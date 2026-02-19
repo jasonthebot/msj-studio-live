@@ -3,109 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>msj-studio • Phase Beta</title>
+  <title>msj-studio • Builder Shell</title>
   <style>
-    :root {
-      --bg:#0b0d12;--panel:#11151d;--panel-2:#161b25;--text:#edf1f8;--muted:#97a1b5;
-      --accent:#7aa2ff;--border:#252d3a;--danger:#ff7f8f;--ok:#63d6a2;
-      --canvas:#0b1018;--card:#151d2a;
+    :root{
+      --bg:#0a0c10;--shell:#0f1319;--panel:#121821;--panel-2:#171f2b;--line:#242d3b;--line-2:#2f3b4f;
+      --text:#edf2ff;--muted:#8e9ab3;--accent:#6f96ff;--accent-2:#8ab0ff;--good:#63d6a2;
+      --canvas:#090d14;--overlay:rgba(111,150,255,.18);
     }
     *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;background:radial-gradient(circle at 20% -20%,#19253a,var(--bg) 43%);color:var(--text);font-family:Inter,system-ui,sans-serif}
-    .layout{display:grid;grid-template-columns:minmax(860px,1fr) 360px;min-height:100vh}
-    .canvas-wrap{padding:16px;position:relative}
-    .device-switch{position:fixed;left:18px;bottom:18px;z-index:11;background:#111722;border:1px solid var(--border);border-radius:12px;padding:6px;display:flex;gap:6px}
-    .device-switch button{font-size:.76rem;padding:7px 10px;transition:all .2s ease}
-    .device-switch button.active{background:#24324d;border-color:#3b5588}
-    .canvas-shell{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#0e131c,#0b1017);overflow:hidden;min-height:calc(100vh - 32px)}
-    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:rgba(9,12,18,.94);position:sticky;top:0;z-index:8}
-    .group{display:inline-flex;gap:8px;align-items:center;padding-right:10px;border-right:1px solid #202838}
-    .group:last-child{border-right:0}
-    .group.secondary{opacity:.8}
-    .group.secondary button,.group.secondary select{background:#121926;color:#c7d0e2;border-color:#2a3448}
-    .group.primary-actions{margin-left:auto;padding:6px;background:#131d2c;border:1px solid #2e4269;border-radius:11px;box-shadow:0 8px 24px #00000035}
-    .hint{font-size:.72rem;color:#9fb0ce;padding:1px 6px;border:1px solid #354866;border-radius:999px}
-    button,select,input,textarea{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:7px 9px;font:inherit}
-    button{cursor:pointer;transition:all .18s ease}
-    button:hover{border-color:var(--accent)}
-    button.primary{background:linear-gradient(180deg,#2a3a5f,#1f2e4d);border-color:#3c538f}
-    button.danger{border-color:#603540;color:#ffbcc4}
-    #status{color:var(--muted);font-size:.82rem;min-width:100px;text-align:right}
-    #status.ok{color:var(--ok)}
-    .preview-wrap{padding:20px;background:var(--canvas);display:flex;justify-content:center;min-height:calc(100vh - 92px)}
-    .preview-frame{width:min(100%,1200px);transition:width .2s ease,transform .2s ease,opacity .2s ease}
-    .preview-frame.switching{transform:translateY(4px) scale(.994);opacity:.9}
-    .preview-frame[data-device="tablet"]{width:min(100%,860px)}
-    .preview-frame[data-device="mobile"]{width:min(100%,430px)}
-    .site{background:#0e131b;border:1px dashed #202a3a;border-radius:14px;overflow:hidden}
-    .blk{border:1px solid #26324755;position:relative;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
-    .blk:hover{border-color:#3a4c6d88}
-    .blk.sel{border-color:#7aa2ff;box-shadow:0 0 0 1px #7aa2ff80,0 0 0 3px #7aa2ff26 inset;transform:translateY(-1px)}
-    .blk-tools{position:absolute;top:6px;right:6px;z-index:4;display:flex;gap:4px;background:#101725d9;padding:4px;border-radius:8px;border:1px solid #2a3346}
-    .blk-tools button{padding:2px 6px;font-size:.72rem}
-    .ed{outline:none}
-    .ed:focus{box-shadow:0 0 0 2px #7aa2ff60;border-radius:6px}
-    .sidebar{border-left:1px solid var(--border);padding:14px;background:#10131a;display:flex;flex-direction:column;gap:10px}
-    .inspector-title{margin:0 0 2px;color:#c8d4eb;font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;font-weight:700}
-    .card{border:1px solid var(--border);background:#121824;border-radius:12px;padding:13px 12px;margin:0}
-    .card.sticky{position:sticky;top:10px;z-index:6;background:#152032;border-color:#334765}
-    .section-title{margin:0 0 11px;color:#b6c3da;font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-    .field{margin-bottom:12px}
-    .field:last-child{margin-bottom:0}
-    .field label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:5px}
+    body{margin:0;background:radial-gradient(circle at 18% -20%,#1f2b41,var(--bg) 44%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif;overflow:hidden}
+    button,select,input,textarea{font:inherit;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+    button{cursor:pointer;transition:.18s ease} button:hover{border-color:var(--accent)}
+
+    .app{height:100vh;display:grid;grid-template-columns:88px 1fr 380px;grid-template-rows:64px 1fr;background:var(--shell)}
+
+    .rail{grid-row:1/3;background:#0b1017;border-right:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:14px}
+    .rail .logo{height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:#121a26;font-weight:700;letter-spacing:.08em}
+    .rail-nav{display:flex;flex-direction:column;gap:8px}
+    .rail-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;font-size:.74rem;color:#b6c2d9;background:transparent;border:1px solid transparent;border-radius:12px}
+    .rail-btn.active{background:#162338;border-color:#34507f;color:#e9f0ff}
+
+    .topbar{grid-column:2/4;height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(12,16,24,.94)}
+    .context{font-size:.88rem;color:#b8c4dc;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#121927}
+    .seg,.cluster{display:flex;align-items:center;gap:8px;padding-right:12px;border-right:1px solid #253043}
+    .cluster:last-of-type{border-right:0}
+    .grow{margin-left:auto}
+    .pill button{padding:7px 10px;font-size:.78rem}
+    .pill button.active{background:#243654;border-color:#3e5d93}
+    .primary{background:linear-gradient(180deg,#36518a,#2a416f);border-color:#4d6ea8}
+    .publish{background:linear-gradient(180deg,#2e3650,#252c42);border-color:#4f5f87}
+    #status{font-size:.8rem;color:var(--muted);min-width:90px;text-align:right}
+    #status.ok{color:var(--good)}
+
+    .stage{grid-column:2;grid-row:2;display:grid;grid-template-rows:auto 1fr;background:var(--canvas)}
+    .create-strip{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;background:#0f1622}
+    .create-strip select{min-width:170px}
+
+    .canvas-zone{padding:20px;overflow:auto;position:relative}
+    .canvas-center{display:flex;justify-content:center;min-height:100%}
+    .preview-frame{width:min(100%,1240px);transition:.2s ease;transform-origin:top center}
+    .preview-frame[data-device="tablet"]{width:min(100%,900px)}
+    .preview-frame[data-device="mobile"]{width:min(100%,440px)}
+    .site{background:#0d131d;border:1px dashed #223048;border-radius:16px;overflow:hidden;padding:8px}
+
+    .blk{border:1px solid #2a364b80;position:relative;transition:.15s ease;margin:12px;border-radius:12px}
+    .blk:hover{border-color:#48628e}
+    .blk.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--overlay) inset}
+    .blk.sel::before{content:'Selected';position:absolute;left:10px;top:-10px;background:#162544;border:1px solid #4164a1;color:#dbe6ff;border-radius:999px;padding:2px 8px;font-size:.68rem;z-index:4}
+    .blk-tools{position:absolute;top:8px;right:8px;display:flex;gap:4px;background:#101929e8;padding:4px;border:1px solid #2a3953;border-radius:10px;z-index:5}
+    .blk-tools button{padding:3px 7px;font-size:.72rem}
+    .ed{outline:none}.ed:focus{box-shadow:0 0 0 2px #7aa2ff70;border-radius:6px}
+
+    .inspector{grid-column:3;grid-row:2;border-left:1px solid var(--line);background:#0f141d;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+    .inspector h3{margin:2px 0 0;font-size:.78rem;text-transform:uppercase;letter-spacing:.13em;color:#c4d0e7}
+    .panel{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px}
+    .panel h4{margin:0 0 10px;font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;color:#b4c1d8}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .field{margin-bottom:10px}.field:last-child{margin-bottom:0}
+    .field label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px}
     .mini{font-size:.78rem;color:var(--muted);line-height:1.45}
-    .chip{padding:2px 8px;background:#1b2434;border:1px solid var(--border);border-radius:999px;font-size:.73rem}
-    .hide{display:none}
-    @media (max-width:1200px){.layout{grid-template-columns:1fr}.sidebar{border-left:0;border-top:1px solid var(--border)}}
+    .chip{padding:2px 8px;background:#1a2335;border:1px solid var(--line);border-radius:999px;font-size:.73rem}
+
+    @media (max-width:1320px){.app{grid-template-columns:76px 1fr}.topbar{grid-column:2}.inspector{position:fixed;right:0;top:64px;bottom:0;width:360px;z-index:20}}
   </style>
 </head>
 <body>
-  <div class="layout">
-    <div class="canvas-wrap">
-      <div class="canvas-shell">
-        <div class="toolbar">
-          <div class="group secondary">
-            <select id="addBlock" title="Add a new block">
-              <option value="">+ Add block</option>
-              <option value="header">Header/Nav</option><option value="hero">Hero</option><option value="text">Text</option>
-              <option value="image">Image</option><option value="split">Split</option><option value="gallery">Gallery</option><option value="footer">Footer</option>
-            </select>
-            <select id="templatePick" title="Switch template"><option value="">Templates</option><option value="saas">SaaS</option><option value="portfolio">Portfolio</option><option value="landing">Landing</option></select>
-          </div>
-          <div class="group secondary">
-            <button id="undo" title="Undo">Undo</button><button id="redo" title="Redo">Redo</button>
-            <button id="copyBtn" title="Copy exported HTML">Copy export</button>
-          </div>
-          <div class="group primary-actions">
-            <button id="save" class="primary" title="Save project (⌘/Ctrl+S)">Save <span class="hint">⌘/Ctrl+S</span></button>
-            <button id="publishBtn" title="Publish current snapshot">Publish</button>
-            <button id="exportBtn" title="Export HTML/CSS bundle">Export</button>
-            <button id="modeBtn" title="Toggle draft/published mode">Mode: Draft</button>
-          </div>
-          <div id="status">Ready</div>
-        </div>
-        <div class="preview-wrap"><div class="preview-frame" id="previewFrame" data-device="desktop"><div class="site" id="site"></div></div></div>
-      </div>
-      <div class="device-switch">
+  <div class="app">
+    <aside class="rail">
+      <div class="logo">MSJ</div>
+      <nav class="rail-nav">
+        <button class="rail-btn active" data-section="create">＋<span>Create</span></button>
+        <button class="rail-btn" data-section="content">▦<span>Content</span></button>
+        <button class="rail-btn" data-section="theme">◐<span>Theme</span></button>
+        <button class="rail-btn" data-section="settings">⚙<span>Settings</span></button>
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div class="context">Page: Home / Default Template</div>
+      <div class="seg pill" id="deviceSwitchTop">
         <button data-d="desktop">Desktop</button><button data-d="tablet">Tablet</button><button data-d="mobile">Mobile</button>
       </div>
-    </div>
-    <aside class="sidebar">
-      <h3 class="inspector-title">Inspector</h3>
-      <div class="card sticky">
-        <h4 class="section-title">Editing scope</h4>
+      <div class="cluster">
+        <button id="zoomOut">−</button><span class="mini" id="zoomLabel">100%</span><button id="zoomIn">＋</button>
+      </div>
+      <div class="cluster">
+        <button id="undo">Undo</button><button id="redo">Redo</button>
+      </div>
+      <div class="cluster grow">
+        <button id="copyBtn">Copy export</button><button id="exportBtn">Export</button>
+      </div>
+      <button id="save" class="primary">Save</button>
+      <button id="publishBtn" class="publish">Publish</button>
+      <button id="modeBtn">Mode: Draft</button>
+      <div id="status">Ready</div>
+    </header>
+
+    <main class="stage">
+      <div class="create-strip" id="createStrip">
+        <select id="addBlock" title="Add block">
+          <option value="">+ Add block</option>
+          <option value="header">Header/Nav</option><option value="hero">Hero</option><option value="text">Text</option>
+          <option value="image">Image</option><option value="split">Split</option><option value="gallery">Gallery</option><option value="footer">Footer</option>
+        </select>
+        <select id="templatePick" title="Switch template"><option value="">Templates</option><option value="saas">SaaS</option><option value="portfolio">Portfolio</option><option value="landing">Landing</option></select>
+      </div>
+      <div class="canvas-zone">
+        <div class="canvas-center">
+          <div class="preview-frame" id="previewFrame" data-device="desktop">
+            <div class="site" id="site"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="inspector">
+      <h3>Inspector</h3>
+      <section class="panel">
+        <h4>Editing scope</h4>
         <div class="field"><label><input id="applyAllDevices" type="checkbox" checked> Apply to all devices</label></div>
         <div class="mini">Turn off to edit Tablet/Mobile styles independently for selected blocks.</div>
-      </div>
-      <div class="card">
-        <h4 class="section-title">SEO</h4>
+      </section>
+
+      <section class="panel" id="settingsPanel">
+        <h4>Project settings</h4>
         <div class="field"><label>SEO title</label><input id="seoTitle"/></div>
         <div class="field"><label>Meta description</label><textarea id="seoDesc" rows="2"></textarea></div>
         <div class="field"><label>OG image URL</label><input id="seoOg"/></div>
-      </div>
-      <div class="card">
-        <h4 class="section-title">Global style scale</h4>
+      </section>
+
+      <section class="panel" id="themePanel">
+        <h4>Theme system</h4>
         <div class="row2">
           <div class="field"><label>Type scale</label><input id="gType" type="number" step="0.05" min="0.7" max="1.5"></div>
           <div class="field"><label>Spacing</label><input id="gSpace" type="number" step="0.05" min="0.7" max="1.8"></div>
@@ -113,19 +141,19 @@
           <div class="field"><label>Radius</label><input id="gRadius" type="number" min="0" max="40"></div>
         </div>
         <div class="field"><label><input id="gShadow" type="checkbox"> soft shadows</label></div>
-      </div>
-      <div class="card" id="blockCard"><h4 class="section-title">Selected block</h4><p class="mini">Pick a block to edit content/style.</p></div>
-      <div class="card">
-        <div class="mini">Device editing: switch Desktop/Tablet/Mobile (bottom-left). Duplicate selected block with <strong>⌘/Ctrl+D</strong>.</div>
-      </div>
+      </section>
+
+      <section class="panel" id="blockCard"><h4>Selected block</h4><p class="mini">Pick a block to edit content/style.</p></section>
+      <section class="panel"><div class="mini">Duplicate selected block with <strong>⌘/Ctrl+D</strong>. Device-aware editing is preserved.</div></section>
     </aside>
   </div>
+
 <script>
 const STORE='msj_beta_v1';
 const deep=v=>JSON.parse(JSON.stringify(v));
 const uid=()=>crypto.randomUUID();
 const initial=()=>({
-  mode:'draft',device:'desktop',selected:null,
+  mode:'draft',device:'desktop',selected:null,zoom:1,
   seo:{title:'msj-studio site',description:'Built in msj-studio',og:''},
   global:{typeScale:1,spacing:1,maxWidth:1120,radius:14,shadow:true},
   published:null,
@@ -141,7 +169,7 @@ function mk(type){
   if(type==='gallery')return {...base,content:{items:[]}};
   if(type==='footer')return {...base,content:{logo:'MSJ',text:'© 2026 msj-studio',social:'X,GitHub,LinkedIn',cols:'Product|About|Contact'}};
 }
-let state=load()||initial();
+let state=load()||initial(); if(!state.zoom) state.zoom=1;
 let history=[]; let future=[]; let autosave;
 function load(){try{return JSON.parse(localStorage.getItem(STORE))}catch{return null}}
 function persist(silent=true){localStorage.setItem(STORE,JSON.stringify(state));status(silent?'Autosaved':'Saved local ✅', 'ok');}
@@ -154,7 +182,10 @@ function updateStyle(b,key,val){if(b.linkStyles||state.device==='desktop') b.sty
 function esc(s=''){return s.replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 
 function render(){
-  document.getElementById('previewFrame').dataset.device=state.device;
+  const frame=document.getElementById('previewFrame');
+  frame.dataset.device=state.device;
+  frame.style.transform=`scale(${state.zoom})`;
+  document.getElementById('zoomLabel').textContent=Math.round(state.zoom*100)+'%';
   const site=document.getElementById('site');
   site.style.maxWidth=state.global.maxWidth+'px'; site.style.margin='0 auto';
   const arr=blocksActive();
@@ -163,7 +194,7 @@ function render(){
 }
 function renderBlock(b,i){
   const s=styleFor(b), sh=state.global.shadow?'box-shadow:0 10px 25px #00000040;':'';
-  const common=`background:${s.bg};color:${s.fg};padding:${(s.pad||22)*state.global.spacing}px;border-radius:${state.global.radius}px;${sh};text-align:${s.align||'left'};margin:12px;`;
+  const common=`background:${s.bg};color:${s.fg};padding:${(s.pad||22)*state.global.spacing}px;border-radius:${state.global.radius}px;${sh};text-align:${s.align||'left'};`;
   let html='';
   if(b.type==='header'){
     const links=b.content.links.split(',').map(x=>`<span class='chip'>${esc(x.trim())}</span>`).join('');
@@ -185,7 +216,7 @@ function renderBlock(b,i){
     const cols=b.content.cols.split('|').map(x=>`<div>${esc(x)}</div>`).join('');
     html=`<div style='display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px'><div><strong>${esc(b.content.logo)}</strong><p>${esc(b.content.text)}</p></div><div>${cols}</div><div>${b.content.social.split(',').map(x=>`<span class='chip'>${esc(x.trim())}</span>`).join('')}</div></div>`;
   }
-  const tools=state.mode==='draft'?`<div class='blk-tools'><button data-a='up' data-id='${b.id}' title='Move up'>↑</button><button data-a='down' data-id='${b.id}' title='Move down'>↓</button><button data-a='dup' data-id='${b.id}' title='Duplicate (⌘/Ctrl+D)'>⧉</button><button data-a='del' data-id='${b.id}' title='Delete block'>✕</button></div>`:'';
+  const tools=state.mode==='draft'?`<div class='blk-tools'><button data-a='up' data-id='${b.id}'>↑</button><button data-a='down' data-id='${b.id}'>↓</button><button data-a='dup' data-id='${b.id}'>⧉</button><button data-a='del' data-id='${b.id}'>✕</button></div>`:'';
   return `<section class='blk ${state.selected===b.id?'sel':''}' data-id='${b.id}' style='${common}'>${tools}${html}</section>`;
 }
 
@@ -203,12 +234,12 @@ function syncInspector(){
   apply.disabled=!b;
   if(!b){
     apply.checked=true;
-    card.innerHTML='<h4 class="section-title">Selected block</h4><p class="mini">Pick a block to edit.</p>';
+    card.innerHTML='<h4>Selected block</h4><p class="mini">Pick a block to edit.</p>';
     return;
   }
   apply.checked=b.linkStyles;
   const s=styleFor(b);
-  card.innerHTML=`<h4 class='section-title'>${b.type} block</h4>
+  card.innerHTML=`<h4>${b.type} block</h4>
     <div class='field'><label><input id='linkStyles' type='checkbox' ${b.linkStyles?'checked':''}> link styles across devices</label></div>
     <div class='row2'><div class='field'><label>Background</label><input id='bg' type='color' value='${toHex(s.bg||'#111722')}'></div><div class='field'><label>Text</label><input id='fg' type='color' value='${toHex(s.fg||'#edf1f8')}'></div>
       <div class='field'><label>Padding</label><input id='pad' type='number' min='0' max='120' value='${s.pad||22}'></div><div class='field'><label>Align</label><select id='align'><option ${sel((s.align||'left')==='left')}>left</option><option ${sel((s.align||'left')==='center')}>center</option><option ${sel((s.align||'left')==='right')}>right</option></select></div></div>
@@ -236,7 +267,6 @@ function blockFields(b){
 function bindBlockInputs(b){document.querySelectorAll('#blockCard [data-k]').forEach(el=>el.oninput=()=>{pushHist();const k=el.dataset.k; b.content[k]=el.type==='checkbox'?el.checked:el.value; render();queue();});}
 function fileToData(f,cb){if(!f)return;const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(f)}
 
-// top controls
 addBlock.onchange=e=>{if(!e.target.value)return;pushHist();state.blocks.push(mk(e.target.value));state.selected=state.blocks.at(-1).id;e.target.value='';render();queue();};
 templatePick.onchange=e=>{const t=e.target.value;if(!t)return;pushHist();const m={saas:['header','hero','features','gallery','footer'],portfolio:['header','hero','image','split','gallery','footer'],landing:['hero','text','split','footer']};state.blocks=(m[t]||['hero']).map(x=>x==='features'?mk('text'):mk(x));state.selected=state.blocks[0].id;e.target.value='';render();queue();};
 save.onclick=()=>persist(false);
@@ -249,7 +279,10 @@ function blocksToHTML(arr){return arr.map(b=>`<section style="padding:${(b.style
 exportBtn.onclick=()=>{const blob=new Blob([exported()],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='msj-export.html';a.click();URL.revokeObjectURL(a.href)};
 copyBtn.onclick=async()=>{await navigator.clipboard.writeText(exported());status('Export copied', 'ok')};
 ['seoTitle','seoDesc','seoOg','gType','gSpace','gMax','gRadius','gShadow'].forEach(id=>window[id].oninput=()=>{pushHist();state.seo.title=seoTitle.value;state.seo.description=seoDesc.value;state.seo.og=seoOg.value;state.global.typeScale=+gType.value||1;state.global.spacing=+gSpace.value||1;state.global.maxWidth=+gMax.value||1120;state.global.radius=+gRadius.value||14;state.global.shadow=gShadow.checked;render();queue();});
-document.querySelectorAll('.device-switch button').forEach(b=>b.onclick=()=>switchDevice(b.dataset.d));
+
+document.querySelectorAll('#deviceSwitchTop button').forEach(b=>b.onclick=()=>switchDevice(b.dataset.d));
+zoomIn.onclick=()=>{state.zoom=Math.min(1.6, +(state.zoom+0.1).toFixed(2)); render();};
+zoomOut.onclick=()=>{state.zoom=Math.max(0.6, +(state.zoom-0.1).toFixed(2)); render();};
 
 document.getElementById('applyAllDevices').onchange=e=>{const b=state.blocks.find(x=>x.id===state.selected);if(!b)return;pushHist();b.linkStyles=e.target.checked;render();queue();};
 
@@ -265,20 +298,18 @@ function duplicateSelected(){
   pushHist(); arr.splice(i+1,0,deep({...arr[i],id:uid()})); state.selected=arr[i+1].id; render(); queue(); status('Block duplicated', 'ok');
 }
 
-function switchDevice(next){
-  if(!next||next===state.device)return;
-  const frame=document.getElementById('previewFrame');
-  frame.classList.add('switching');
-  state.device=next;
-  render();
-  setTimeout(()=>frame.classList.remove('switching'),170);
-}
-
-function syncDeviceButtons(){
-  document.querySelectorAll('.device-switch button').forEach(btn=>btn.classList.toggle('active',btn.dataset.d===state.device));
-}
+function switchDevice(next){ if(!next||next===state.device)return; state.device=next; render(); }
+function syncDeviceButtons(){ document.querySelectorAll('#deviceSwitchTop button').forEach(btn=>btn.classList.toggle('active',btn.dataset.d===state.device)); }
 
 function syncTop(){seoTitle.value=state.seo.title;seoDesc.value=state.seo.description;seoOg.value=state.seo.og;gType.value=state.global.typeScale;gSpace.value=state.global.spacing;gMax.value=state.global.maxWidth;gRadius.value=state.global.radius;gShadow.checked=state.global.shadow;modeBtn.textContent='Mode: '+(state.mode==='draft'?'Draft':'Published')}
+
+// Left rail section highlighting + panel focus
+const sectionToFocus={create:'createStrip',content:'blockCard',theme:'themePanel',settings:'settingsPanel'};
+document.querySelectorAll('.rail-btn').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('.rail-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  const id=sectionToFocus[btn.dataset.section]; const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
 syncTop(); render();
 </script>
 </body>

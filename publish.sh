@@ -27,11 +27,11 @@ fi
 
 msg="${*:-msj-studio: update $(date -u +'%Y-%m-%d %H:%M UTC')}"
 
-# Stage only the studio source by default.
-git add index.html README.md
+# Stage canonical studio release files.
+git add index.html README.md PHASE_BETA.md
 
 if git diff --cached --quiet; then
-  echo "No staged changes in index.html/README.md."
+  echo "No staged changes in index.html/README.md/PHASE_BETA.md."
   echo "Tip: edit msj-studio/index.html (canonical source) before publishing."
   exit 0
 fi

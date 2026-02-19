@@ -1,70 +1,54 @@
-# msj-studio (Canonical Source + Publish Flow)
+# msj-studio — Phase Beta
 
-`msj-studio/index.html` is the **only source file** you should edit for studio UI/content changes.
+Canonical source: `index.html` (single-file local-first studio).
 
-## Canonical workflow (safe + predictable)
+## Run locally
 
 ```bash
 cd /home/jason/.openclaw/workspace/msj-studio
-# edit index.html
-./publish.sh "feat: update homepage sections"
+python3 -m http.server 4173
+# open http://localhost:4173
 ```
 
-That script handles the reliable path:
-1. stages canonical files (`index.html`, `README.md`)
-2. commits
-3. pushes to `origin`
-4. triggers Vercel auto-deploy
+You can also double-click/open `index.html` directly, but local server is recommended.
 
-## Why this avoids confusion
+## Beta features shipped
 
-- Do **not** edit `/home/jason/.openclaw/workspace/index.html` for msj-studio deploys.
-- Deploy target is this repo: `jasonthebot/msj-studio-live`.
-- If you want to check remote:
+- Header/Nav builder (logo/title/nav links/CTA + logo position)
+- Hero presets (split left/right, background image)
+- Content blocks (text/image/split/gallery/footer)
+- Media upload from device (data URL local save)
+- Block operations: add, duplicate, move up/down, delete
+- Undo/redo + autosave localStorage
+- Template library: SaaS, Portfolio, Landing
+- Device switcher: Desktop / Tablet / Mobile
+- Per-device style editing + link/unlink style behavior
+- Global scales: typography, spacing, max width, radius, shadows
+- Mobile/tablet preview frame width
+- Draft vs Published local mode (publish snapshot)
+- SEO fields (title/meta description/OG image)
+- Export clean HTML/CSS (download and copy)
+
+## Save model
+
+Everything is local in browser `localStorage` key `msj_beta_v1`.
+No backend required.
+
+## Publish to GitHub / Vercel
+
+Use the repo helper script:
 
 ```bash
-git remote -v
+cd /home/jason/.openclaw/workspace/msj-studio
+./publish.sh "feat: phase beta website builder release"
 ```
 
-## First-time git auth hardening (reduce PAT friction)
+That script stages canonical release docs/files, commits, pushes current branch, and Vercel auto-deploy picks it up.
 
-Use GitHub CLI auth once, then push normally:
+## Manual git (if needed)
 
 ```bash
-git config --global user.name "Jason"
-git config --global user.email "jasonthebot0@gmail.com"
-git config --global credential.helper store
-gh auth login
+git add index.html README.md PHASE_BETA.md
+git commit -m "feat: phase beta studio"
+git push origin main
 ```
-
-If you prefer PAT over `gh auth login`, create a fine-grained token with repo access and use it as password when prompted.
-
-## Quick troubleshooting
-
-### `remote: Permission denied` / HTTP 403
-- Confirm you are pushing to the right repo (`git remote -v`).
-- Re-auth:
-  ```bash
-  gh auth status || gh auth login
-  ```
-- If cached bad creds exist:
-  ```bash
-  printf "protocol=https\nhost=github.com\n" | git credential reject
-  ```
-
-### `fatal: Authentication failed`
-- Token expired/invalid. Re-run `gh auth login` or generate a new PAT.
-- Ensure token has repository write access.
-
-### `src refspec main does not match any`
-- No commits yet on branch:
-  ```bash
-  git add index.html
-  git commit -m "init"
-  git push -u origin main
-  ```
-
-### Pushed but site didn't update
-- Verify push landed on expected branch (`git log -1 --oneline`).
-- Confirm Vercel project is linked to this repo + branch.
-- Check Vercel deployment logs for build errors.
